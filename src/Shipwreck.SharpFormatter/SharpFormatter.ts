@@ -23,7 +23,6 @@
                     case 0x78: // 'x'
                         var r = T._padStart(value.toString(16), Math.max(0, length), '0');
                         return format.charAt(0) === 'X' ? r.toUpperCase() : r;
-                    // R, r
                 }
 
                 var c = T._getCulture(culture);
@@ -62,7 +61,9 @@
                         return r;
                     case 0x47: // 'G':
                     case 0x67: // 'g':
-                        length = length >= 0 ? length : 15;
+                    case 0x52: // 'R'
+                    case 0x72: // 'r'
+                        length = (type & 1) && length >= 0 ? length : 15;
                         if (value === 0) {
                             return '0';
                         }
@@ -74,6 +75,9 @@
                             r = Math.abs(exp) < 10 ? ((Math.abs(value) * Math.pow(10, -exp)).toFixed(length - 1) + (type === 0x47 ? 'E' : 'e') + (exp >= 0 ? (c ? c.positiveSign : '+') : (c ? c.negativeSign : '-')) + '0' + Math.abs(exp)) : Math.abs(value).toExponential(length - 1);
                             if (c && c.positiveSign !== '+') {
                                 r = r.replace('+', c.positiveSign);
+                            }
+                            if (Math.abs(exp) > 9 && type === 0x47) {
+                                r = r.replace('e', 'E');
                             }
                         }
                         if (c && c.numberDecimalSeparator !== '.') {
