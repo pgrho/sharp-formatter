@@ -37,6 +37,35 @@ namespace Shipwreck.SharpFormatter.Tests
             _Driver = null;
         }
 
+        #region C
+
+        [TestMethod]
+        public void FormattNumber_C()
+            => Test(12.3, "c");
+
+        [TestMethod]
+        public void FormattNumber_C2()
+            => Test(12.3, "c2");
+
+        [TestMethod]
+        public void FormattNumber_C_3Digits()
+            => Test(123, "c");
+
+        [TestMethod]
+        public void FormattNumber_C_4Digits()
+            => Test(1234, "c");
+
+        [TestMethod]
+        public void FormattNumber_C_6Digits()
+            => Test(123456, "c");
+
+        [TestMethod]
+        public void FormattNumber_C_7Digits()
+            => Test(1234567, "c");
+
+
+        #endregion C
+
         #region D
 
         [TestMethod]

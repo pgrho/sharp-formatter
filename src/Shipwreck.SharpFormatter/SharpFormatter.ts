@@ -1,4 +1,4 @@
-module Shipwreck {
+﻿module Shipwreck {
     export class SharpFormatter {
         private static _getCulture(culture: string | CultureInfo): CultureInfo {
             if (culture) {
@@ -29,6 +29,21 @@ module Shipwreck {
                 var c = T._getCulture(culture);
 
                 switch (type) {
+                    case 0x43: // 'C'
+                    case 0x63: // 'c'
+                        var r = T._formatNumberNumeric(
+                            Math.abs(value),
+                            length >= 0 ? length : (c ? c.currencyDecimalDigits : 2),
+                            c ? c.currencyDecimalSeparator : null,
+                            c ? c.currencyGroupSeparator : null,
+                            c ? c.currencyGroupSizes : null);
+                        var ps = c ? c.currencySymbol : '¤';
+                        if (value < 0) {
+                            var ns = c ? c.negativeSign : "-";
+                            return (c ? T._formatSymbolNegativePattern(c.currencyNegativePattern, r, ns, ps) : null) || (ns + r + ' ' + ps);
+                        } else {
+                            return (c ? T._formatSymbolPattern(c.currencyPositivePattern, r, ps) : null) || (r + ' ' + ps);
+                        }
                     case 0x44: // 'D':
                     case 0x64: // 'd':
                         return (value < 0 ? (c ? c.negativeSign : "-") : "") +
@@ -55,19 +70,8 @@ module Shipwreck {
                             c ? c.numberGroupSeparator : null,
                             c ? c.numberGroupSizes : null);
                         if (value < 0) {
-                            if (c) {
-                                switch (c.numberNegativePattern) {
-                                    case SymbolPosition.Parenthesis:
-                                        return `(${r})`;
-                                    case SymbolPosition.LeftWithSpace:
-                                        return c.negativeSign + " " + r;
-                                    case SymbolPosition.Right:
-                                        return r + c.negativeSign;
-                                    case SymbolPosition.RightWithSpace:
-                                        return r + " " + c.negativeSign;
-                                }
-                            }
-                            return (c ? c.negativeSign : "-") + r;
+                            var ns = c ? c.negativeSign : "-";
+                            return (c ? T._formatSymbolPattern(c.numberNegativePattern, r, ps) : null) || (ns + r);
                         }
                         return r;
 
@@ -82,60 +86,22 @@ module Shipwreck {
                         var ps = c ? c.percentSymbol : '%';
                         if (value < 0) {
                             var ns = c ? c.negativeSign : "-";
-                            if (c) {
-                                switch (c.percentNegativePattern) {
-                                    case PercentNegativePattern.SignNumberPercent:
-                                        return ns + r + ps;
-                                    case PercentNegativePattern.SignPercentNumber:
-                                        return ns + ps + r;
-                                    case PercentNegativePattern.PercentSignNumber:
-                                        return ps + ns + r;
-                                    case PercentNegativePattern.PercentNumberSign:
-                                        return ps + r + ns;
-                                    case PercentNegativePattern.NumberSignPercent:
-                                        return r + ns + ps;
-                                    case PercentNegativePattern.NumberPercentSign:
-                                        return r + ps + ns;
-                                    case PercentNegativePattern.SignPercentSpaceNumber:
-                                        return ns + ps + ' ' + r;
-                                    case PercentNegativePattern.NumberSpacePercentSign:
-                                        return r + ' ' + ps + ns;
-                                    case PercentNegativePattern.PercentSpaceNumberSign:
-                                        return ps + ' ' + r + ns;
-                                    case PercentNegativePattern.PercentSpaceSignNumber:
-                                        return ps + ' ' + ns + r;
-                                    case PercentNegativePattern.NumberSignSpacePercent:
-                                        return r + ns + ' ' + ps;
-                                }
-                            }
-                            return ns + r + ' ' + ps;
+                            return (c ? T._formatSymbolNegativePattern(c.percentNegativePattern, r, ns, ps) : null) || (ns + r + ' ' + ps);
                         } else {
-                            if (c) {
-                                switch (c.percentPositivePattern) {
-                                    case SymbolPosition.Left:
-                                        return ps + r;
-                                    case SymbolPosition.LeftWithSpace:
-                                        return ps + ' ' + r;
-                                    case SymbolPosition.Right:
-                                        return r + ps;
-                                }
-                            }
-                            return r + ' ' + ps;
+                            return (c ? T._formatSymbolPattern(c.percentPositivePattern, r, ps) : null) || (r + ' ' + ps);
                         }
                 }
             } else if (/^.$/) {
                 throw "Invalid format";
             }
 
-            var c = T._getCulture(culture);
-
-            if (value < 0) {
-                return (c ? c.negativeSign : "-") + T.formatNumber(-value, format, c);
-            }
-
-            /* if (/^[Cc][0-9]*$/.test(format)) {
-            } else */
             if (/^[Gg][0-9]*$/.test(format)) {
+                var c = T._getCulture(culture);
+
+                if (value < 0) {
+                    return (c ? c.negativeSign : "-") + T.formatNumber(-value, format, c);
+                }
+
                 var length = format.length === 1 ? 15 : parseInt(format.substring(1), 10);
                 var r = T._formatNumberExponential(value, length, false, c);
                 if (/[Ee]-?[0-9]$/.test(r)) {
@@ -191,6 +157,58 @@ module Shipwreck {
                 }
             }
             return r;
+        }
+        private static _formatSymbolPattern(pattern: SymbolPosition, r: string, ps: string): string {
+            switch (pattern) {
+                case SymbolPosition.Parenthesis:
+                    return '(' + r + ')';
+                case SymbolPosition.Left:
+                    return ps + r;
+                case SymbolPosition.LeftWithSpace:
+                    return ps + ' ' + r;
+                case SymbolPosition.Right:
+                    return r + ps;
+                case SymbolPosition.RightWithSpace:
+                    return r + ' ' + ps;
+            }
+            return null;
+        }
+        private static _formatSymbolNegativePattern(pattern: SymbolNegativePattern, value: string, negativeSign: string, symbol: string): string {
+            switch (pattern) {
+                case SymbolNegativePattern.SignNumberSpaceSymbol:
+                    return negativeSign + value + ' ' + symbol;
+                case SymbolNegativePattern.SignNumberSymbol:
+                    return negativeSign + value + symbol;
+                case SymbolNegativePattern.SignSymbolNumber:
+                    return negativeSign + symbol + value;
+                case SymbolNegativePattern.SymbolSignNumber:
+                    return symbol + negativeSign + value;
+                case SymbolNegativePattern.SymbolNumberSign:
+                    return symbol + value + negativeSign;
+                case SymbolNegativePattern.NumberSignSymbol:
+                    return value + negativeSign + symbol;
+                case SymbolNegativePattern.NumberSymbolSign:
+                    return value + symbol + negativeSign;
+                case SymbolNegativePattern.SignSymbolSpaceNumber:
+                    return negativeSign + symbol + ' ' + value;
+                case SymbolNegativePattern.NumberSpaceSymbolSign:
+                    return value + ' ' + symbol + negativeSign;
+                case SymbolNegativePattern.SymbolSpaceNumberSign:
+                    return symbol + ' ' + value + negativeSign;
+                case SymbolNegativePattern.SymbolSpaceSignNumber:
+                    return symbol + ' ' + negativeSign + value;
+                case SymbolNegativePattern.NumberSignSpaceSymbol:
+                    return value + negativeSign + ' ' + symbol;
+                case SymbolNegativePattern.ParenthesizedLeft:
+                    return `(${symbol}${value})`;
+                case SymbolNegativePattern.ParenthesizedLeftWithSpace:
+                    return `(${symbol} ${value})`;
+                case SymbolNegativePattern.ParenthesizedRight:
+                    return `(${value}${symbol})`;
+                case SymbolNegativePattern.ParenthesizedRightWithSpace:
+                    return `(${value} ${symbol})`;
+            }
+            return null;
         }
     }
 }

@@ -6,19 +6,23 @@
 		Right,
 		RightWithSpace,
 	}
-	export enum PercentNegativePattern {
-		SignNumberSpacePercent,
-		SignNumberPercent,
-		SignPercentNumber,
-		PercentSignNumber,
-		PercentNumberSign,
-		NumberSignPercent,
-		NumberPercentSign,
-		SignPercentSpaceNumber,
-		NumberSpacePercentSign,
-		PercentSpaceNumberSign,
-		PercentSpaceSignNumber,
-		NumberSignSpacePercent
+	export enum SymbolNegativePattern {
+		SignNumberSpaceSymbol,
+		SignNumberSymbol,
+		SignSymbolNumber,
+		SymbolSignNumber,
+		SymbolNumberSign,
+		NumberSignSymbol,
+		NumberSymbolSign,
+		SignSymbolSpaceNumber,
+		NumberSpaceSymbolSign,
+		SymbolSpaceNumberSign,
+		SymbolSpaceSignNumber,
+		NumberSignSpaceSymbol,
+		ParenthesizedLeft,
+		ParenthesizedLeftWithSpace,
+		ParenthesizedRight,
+		ParenthesizedRightWithSpace,
 	}
 	export class CultureInfo {
 		
@@ -35,9 +39,17 @@
 		public numberGroupSeparator: string;
 		public numberGroupSizes: number[];
 		
+		public currencySymbol: string;
+		public currencyPositivePattern: SymbolPosition;
+		public currencyNegativePattern: SymbolNegativePattern;
+		public currencyDecimalDigits: number;
+		public currencyDecimalSeparator: string;
+		public currencyGroupSeparator: string;
+		public currencyGroupSizes: number[];
+		
 		public percentSymbol: string;
 		public percentPositivePattern: SymbolPosition;
-		public percentNegativePattern: PercentNegativePattern;
+		public percentNegativePattern: SymbolNegativePattern;
 		public percentDecimalDigits: number;
 		public percentDecimalSeparator: string;
 		public percentGroupSeparator: string;
@@ -45,7 +57,9 @@
 		
 		private constructor(name: string, positiveSign: string, negativeSign: string, numberDecimalSeparator: string, numberDecimalDigits: number
 		, numberNegativePattern: SymbolPosition, numberGroupSeparator: string, numberGroupSizes: number[]
-		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: PercentNegativePattern
+		, currencySymbol: string, currencyPositivePattern: SymbolPosition, currencyNegativePattern: SymbolNegativePattern
+		, currencyDecimalDigits: number, currencyDecimalSeparator: string, currencyGroupSeparator: string, currencyGroupSizes: number[]
+		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: SymbolNegativePattern
 		, percentDecimalDigits: number, percentDecimalSeparator: string, percentGroupSeparator: string, percentGroupSizes: number[]) {
 			this.name = name;
 			this.positiveSign = positiveSign;
@@ -55,6 +69,14 @@
 			this.numberNegativePattern = numberNegativePattern;
 			this.numberGroupSeparator = numberGroupSeparator;
 			this.numberGroupSizes = numberGroupSizes;
+
+			this.currencySymbol = currencySymbol;
+			this.currencyPositivePattern = currencyPositivePattern;
+			this.currencyNegativePattern = currencyNegativePattern;
+			this.currencyDecimalDigits = currencyDecimalDigits;
+			this.currencyDecimalSeparator = currencyDecimalSeparator;
+			this.currencyGroupSeparator = currencyGroupSeparator ;
+			this.currencyGroupSizes = currencyGroupSizes;
 
 			this.percentSymbol = percentSymbol;
 			this.percentPositivePattern = percentPositivePattern;
@@ -66,7 +88,7 @@
 		}
 
 		public static get invariantCulture() : CultureInfo {
-			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = new CultureInfo("", "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ".", ",", [3]));
+			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = new CultureInfo("", "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "¤", SymbolPosition.Left, SymbolNegativePattern.ParenthesizedLeft, 2, ".", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]));
 		}
 
 		public static get currentCulture() : CultureInfo {
@@ -87,189 +109,365 @@
 				}
 				switch (k) {
 					case "aa":
-					case "ak":
-					case "am":
-					case "bm":
-					case "bo":
-					case "cy":
-					case "ee":
-					case "ga":
-					case "gd":
-					case "gv":
-					case "ha":
-					case "he":
-					case "hy":
-					case "ig":
-					case "ii":
-					case "ja":
-					case "ki":
-					case "kn":
-					case "ko":
-					case "kr":
-					case "kw":
-					case "lg":
-					case "mg":
-					case "mn":
-					case "ms":
-					case "mt":
-					case "my":
-					case "nd":
-					case "ne":
 					case "om":
-					case "si":
-					case "sn":
-					case "so":
-					case "sw":
-					case "th":
-					case "ti":
-					case "to":
-					case "ug":
-					case "ur":
-					case "vo":
-					case "yi":
-					case "yo":
-					case "zh":
-					case "zu":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "Br", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
 						break;
 					case "af":
-					case "ba":
-					case "bg":
-					case "eo":
-					case "et":
-					case "ff":
-					case "hu":
-					case "kk":
-					case "ky":
-					case "lv":
 					case "nr":
-					case "oc":
-					case "os":
-					case "pl":
-					case "ru":
-					case "sq":
 					case "ss":
 					case "st":
-					case "tg":
-					case "ts":
-					case "uk":
-					case "uz":
 					case "ve":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ",", " ", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "R", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "ak":
+					case "ee":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "GH₵", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "am":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "ብር", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
 						break;
 					case "ar":
-					case "ce":
-					case "dv":
-					case "en":
-					case "iu":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "ر.س.‏", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
 						break;
 					case "as":
-					case "bn":
-					case "gu":
-					case "hi":
-					case "ks":
-					case "ml":
-					case "mr":
 					case "or":
 					case "pa":
 					case "ta":
-					case "te":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ".", ",", [3,2]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "₹", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SymbolSpaceSignNumber, 2, ".", ",", [3,2], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2]);
 						break;
 					case "az":
-					case "ca":
-					case "el":
-					case "fy":
-					case "ia":
-					case "id":
-					case "is":
-					case "it":
-					case "jv":
-					case "ln":
-					case "lo":
-					case "lu":
-					case "mk":
-					case "ps":
-					case "pt":
-					case "rw":
-					case "sg":
-					case "sr":
-					case "vi":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ",", ".", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "₼", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "ba":
+					case "ru":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "₽", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
 						break;
 					case "be":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "Br", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "bg":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "лв.", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "bm":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "CFA", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "bn":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "৳", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2]);
+						break;
+					case "bo":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "¥", SymbolPosition.Left, SymbolNegativePattern.SymbolSignNumber, 2, ".", ",", [3,0], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
 					case "br":
 					case "co":
-					case "cs":
-					case "cu":
 					case "fi":
 					case "fr":
-					case "ka":
 					case "lb":
 					case "lt":
-					case "nb":
-					case "nn":
-					case "no":
-					case "se":
 					case "sk":
-					case "sv":
-					case "tk":
-					case "tt":
-					case "wo":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ",", " ", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "€", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
 						break;
 					case "bs":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "KM", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "ca":
+					case "el":
+					case "it":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "€", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "ce":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₽", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
+						break;
+					case "cs":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "Kč", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "cu":
+					case "tt":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "₽", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "cy":
+					case "gd":
+					case "gv":
+					case "kw":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "£", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
 					case "da":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "kr.", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
 					case "de":
 					case "es":
-					case "fo":
 					case "gl":
-					case "gn":
-					case "kl":
-					case "nl":
-					case "rn":
-					case "ro":
 					case "sl":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ",", ".", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "€", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "dv":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "ރ.", SymbolPosition.RightWithSpace, SymbolNegativePattern.NumberSpaceSymbolSign, 2, ".", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
 						break;
 					case "dz":
-					case "sa":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ".", ",", [3,2]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "Nu.", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3,2], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3,2]);
+						break;
+					case "en":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "$", SymbolPosition.Left, SymbolNegativePattern.ParenthesizedLeft, 2, ".", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
+						break;
+					case "eo":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "XDR", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "et":
+					case "lv":
+					case "oc":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "€", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
 						break;
 					case "eu":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "%", SymbolPosition.LeftWithSpace, PercentNegativePattern.SignPercentSpaceNumber, 2, ",", ".", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "€", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", ".", [3]);
 						break;
 					case "fa":
-						c = new CultureInfo(k, "+", "-", "/", 2, SymbolPosition.Right, ",", [3], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.NumberSignSpacePercent, 2, "/", ",", [3]);
+						c = new CultureInfo(k, "+", "-", "/", 2, SymbolPosition.Right, ",", [3], "ريال", SymbolPosition.Right, SymbolNegativePattern.NumberSignSymbol, 2, "/", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.NumberSignSpaceSymbol, 2, "/", ",", [3]);
+						break;
+					case "ff":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "CFA", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "fo":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "kr", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "fy":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "€", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SymbolSpaceNumberSign, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "ga":
+					case "mt":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "€", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "gn":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "₲", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "gu":
+					case "hi":
+					case "te":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "₹", SymbolPosition.Left, SymbolNegativePattern.SymbolSpaceSignNumber, 2, ".", ",", [3,2], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2]);
+						break;
+					case "ha":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₦", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "he":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₪", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SymbolSignNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
 						break;
 					case "hr":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.LeftWithSpace, ".", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ",", ".", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.LeftWithSpace, ".", [3], "kn", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "hu":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "Ft", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "hy":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "֏", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ia":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "€", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "id":
+					case "jv":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "Rp", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "ig":
+					case "yo":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₦", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ii":
+					case "ug":
+					case "zh":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "¥", SymbolPosition.Left, SymbolNegativePattern.SymbolSignNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "is":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "ISK", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "iu":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "$", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
+						break;
+					case "ja":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "¥", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ka":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "₾", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "ki":
+					case "sw":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "Ksh", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "kk":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "₸", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "kl":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "kr.", SymbolPosition.Left, SymbolNegativePattern.SymbolSpaceSignNumber, 2, ",", ".", [3,0], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
 						break;
 					case "km":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.LeftWithSpace, ",", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.LeftWithSpace, ",", [3], "៛", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "kn":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₹", SymbolPosition.Left, SymbolNegativePattern.SymbolSpaceSignNumber, 2, ".", ",", [3,2], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ko":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₩", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "kr":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₦", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ks":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "₹", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3,2], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2]);
 						break;
 					case "ku":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "٪", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "د.ع.‏", SymbolPosition.Left, SymbolNegativePattern.SymbolSignNumber, 2, ".", ",", [3], "٪", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ky":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "сом", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
 						break;
 					case "la":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberSpacePercent, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "XDR", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
+						break;
+					case "lg":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "USh", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ln":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "FC", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "lo":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "₭", SymbolPosition.Left, SymbolNegativePattern.SymbolSignNumber, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "lu":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "FC", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "mg":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "Ar", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
 						break;
 					case "mi":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "%", SymbolPosition.Left, PercentNegativePattern.SignPercentNumber, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "$", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3]);
+						break;
+					case "mk":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "ден", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "ml":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "₹", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2]);
+						break;
+					case "mn":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "₮", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "mr":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "₹", SymbolPosition.Left, SymbolNegativePattern.SymbolSpaceSignNumber, 2, "`", ",", [3,2], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3,2]);
+						break;
+					case "ms":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "RM", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "my":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "K", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "nb":
+					case "no":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "kr", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "nd":
+					case "sn":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "$", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ne":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "रु", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "nl":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "€", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SymbolSpaceSignNumber, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "nn":
+					case "se":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "kr", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "os":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "₾", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "pl":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "zł", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "ps":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "؋", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "pt":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "R$", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
 						break;
 					case "rm":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, "’", [3], "%", SymbolPosition.RightWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ".", "’", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, "’", [3], "CHF", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", "’", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", "’", [3]);
+						break;
+					case "rn":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "FBu", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 0, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "ro":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "lei", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3]);
+						break;
+					case "rw":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "RF", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "sa":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3, 2], "₹", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SymbolSpaceSignNumber, 2, ".", ",", [3,2], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3,2]);
 						break;
 					case "sd":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Right, ",", [3], "%", SymbolPosition.LeftWithSpace, PercentNegativePattern.SignNumberSpacePercent, 2, ".", ",", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Right, ",", [3], "Rs", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3], "%", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ".", ",", [3]);
+						break;
+					case "sg":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "FCFA", SymbolPosition.Left, SymbolNegativePattern.SymbolSignNumber, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "si":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "රු.", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "so":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "S", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 0, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "sq":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "Lekë", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "sr":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "RSD", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "sv":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "kr", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "tg":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "смн", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "th":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "฿", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "ti":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "Nfk", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "tk":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "m.", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
 						break;
 					case "tn":
 					case "xh":
-						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, " ", [3], "%", SymbolPosition.Right, PercentNegativePattern.SignNumberPercent, 2, ".", " ", [3]);
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, " ", [3], "R", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", " ", [3]);
+						break;
+					case "to":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "T$", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
 						break;
 					case "tr":
-						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "%", SymbolPosition.Left, PercentNegativePattern.SignPercentNumber, 2, ",", ".", [3]);
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "₺", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ",", ".", [3], "%", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ",", ".", [3]);
+						break;
+					case "ts":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "R", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "uk":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "₴", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "ur":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "Rs", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "uz":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "soʻm", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 0, ",", " ", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", " ", [3]);
+						break;
+					case "vi":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, ".", [3], "₫", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", ".", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ",", ".", [3]);
+						break;
+					case "vo":
+					case "yi":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "XDR", SymbolPosition.LeftWithSpace, SymbolNegativePattern.SignSymbolSpaceNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
+						break;
+					case "wo":
+						c = new CultureInfo(k, "+", "-", ",", 2, SymbolPosition.Left, " ", [3], "CFA", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3], "%", SymbolPosition.RightWithSpace, SymbolNegativePattern.SignNumberSpaceSymbol, 2, ",", " ", [3]);
+						break;
+					case "zu":
+						c = new CultureInfo(k, "+", "-", ".", 2, SymbolPosition.Left, ",", [3], "R", SymbolPosition.Left, SymbolNegativePattern.SignSymbolNumber, 2, ".", ",", [3], "%", SymbolPosition.Right, SymbolNegativePattern.SignNumberSymbol, 2, ".", ",", [3]);
 						break;
 				}
 				if (c) {

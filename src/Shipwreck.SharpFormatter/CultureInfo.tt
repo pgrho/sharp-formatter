@@ -11,19 +11,23 @@ module Shipwreck {
 		Right,
 		RightWithSpace,
 	}
-	export enum PercentNegativePattern {
-		SignNumberSpacePercent,
-		SignNumberPercent,
-		SignPercentNumber,
-		PercentSignNumber,
-		PercentNumberSign,
-		NumberSignPercent,
-		NumberPercentSign,
-		SignPercentSpaceNumber,
-		NumberSpacePercentSign,
-		PercentSpaceNumberSign,
-		PercentSpaceSignNumber,
-		NumberSignSpacePercent
+	export enum SymbolNegativePattern {
+		SignNumberSpaceSymbol,
+		SignNumberSymbol,
+		SignSymbolNumber,
+		SymbolSignNumber,
+		SymbolNumberSign,
+		NumberSignSymbol,
+		NumberSymbolSign,
+		SignSymbolSpaceNumber,
+		NumberSpaceSymbolSign,
+		SymbolSpaceNumberSign,
+		SymbolSpaceSignNumber,
+		NumberSignSpaceSymbol,
+		ParenthesizedLeft,
+		ParenthesizedLeftWithSpace,
+		ParenthesizedRight,
+		ParenthesizedRightWithSpace,
 	}
 	export class CultureInfo {
 		
@@ -40,9 +44,17 @@ module Shipwreck {
 		public numberGroupSeparator: string;
 		public numberGroupSizes: number[];
 		
+		public currencySymbol: string;
+		public currencyPositivePattern: SymbolPosition;
+		public currencyNegativePattern: SymbolNegativePattern;
+		public currencyDecimalDigits: number;
+		public currencyDecimalSeparator: string;
+		public currencyGroupSeparator: string;
+		public currencyGroupSizes: number[];
+		
 		public percentSymbol: string;
 		public percentPositivePattern: SymbolPosition;
-		public percentNegativePattern: PercentNegativePattern;
+		public percentNegativePattern: SymbolNegativePattern;
 		public percentDecimalDigits: number;
 		public percentDecimalSeparator: string;
 		public percentGroupSeparator: string;
@@ -50,7 +62,9 @@ module Shipwreck {
 		
 		private constructor(name: string, positiveSign: string, negativeSign: string, numberDecimalSeparator: string, numberDecimalDigits: number
 		, numberNegativePattern: SymbolPosition, numberGroupSeparator: string, numberGroupSizes: number[]
-		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: PercentNegativePattern
+		, currencySymbol: string, currencyPositivePattern: SymbolPosition, currencyNegativePattern: SymbolNegativePattern
+		, currencyDecimalDigits: number, currencyDecimalSeparator: string, currencyGroupSeparator: string, currencyGroupSizes: number[]
+		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: SymbolNegativePattern
 		, percentDecimalDigits: number, percentDecimalSeparator: string, percentGroupSeparator: string, percentGroupSizes: number[]) {
 			this.name = name;
 			this.positiveSign = positiveSign;
@@ -60,6 +74,14 @@ module Shipwreck {
 			this.numberNegativePattern = numberNegativePattern;
 			this.numberGroupSeparator = numberGroupSeparator;
 			this.numberGroupSizes = numberGroupSizes;
+
+			this.currencySymbol = currencySymbol;
+			this.currencyPositivePattern = currencyPositivePattern;
+			this.currencyNegativePattern = currencyNegativePattern;
+			this.currencyDecimalDigits = currencyDecimalDigits;
+			this.currencyDecimalSeparator = currencyDecimalSeparator;
+			this.currencyGroupSeparator = currencyGroupSeparator ;
+			this.currencyGroupSizes = currencyGroupSizes;
 
 			this.percentSymbol = percentSymbol;
 			this.percentPositivePattern = percentPositivePattern;
@@ -137,6 +159,75 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 				nnp = "Left";
 				break;
 		}
+		string cpp;
+		switch	(n.CurrencyPositivePattern) {
+			case 1:
+				cpp = "Right";
+				break;
+			case 2:
+				cpp = "LeftWithSpace";
+				break;
+			case 3:
+				cpp = "RightWithSpace";
+				break;
+			case 0:
+			default:
+				cpp = "Left";
+				break;
+		}
+		string cnp;
+		switch (n.CurrencyNegativePattern) {
+			case 1:
+				cnp = "SignSymbolNumber";
+				break;
+			case 2:
+				cnp = "SymbolSignNumber";
+				break;
+			case 3:
+				cnp = "SymbolNumberSign";
+				break;
+			case 4:
+				cnp = "ParenthesiedRight";
+				break;
+			case 5:
+				cnp = "SignNumberSymbol";
+				break;
+			case 6:
+				cnp = "NumberSignSymbol";
+				break;
+			case 7:
+				cnp = "NumberSymbolSign";
+				break;
+			case 8:
+				cnp = "SignNumberSpaceSymbol";
+				break;
+			case 9:
+				cnp = "SignSymbolSpaceNumber";
+				break;
+			case 10:
+				cnp = "NumberSpaceSymbolSign";
+				break;
+			case 11:
+				cnp = "SymbolSpaceNumberSign";
+				break;
+			case 12:
+				cnp = "SymbolSpaceSignNumber";
+				break;
+			case 13:
+				cnp = "NumberSignSpaceSymbol";
+				break;
+			case 14:
+				cnp = "ParenthesizedLeftWithSpace";
+				break;
+			case 15:
+				cnp = "ParenthesizedRightWithSpace";
+				break;
+			case 0:
+			default:
+				cnp = "ParenthesizedLeft";
+				break;
+		}
+
 		string ppp;
 		switch	(n.PercentPositivePattern) {
 			case 1:
@@ -156,46 +247,48 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 		string pnp;
 		switch (n.PercentNegativePattern) {
 			case 1:
-				pnp = "SignNumberPercent";
+				pnp = "SignNumberSymbol";
 				break;
 			case 2:
-				pnp = "SignPercentNumber";
+				pnp = "SignSymbolNumber";
 				break;
 			case 3:
-				pnp = "PercentSignNumber";
+				pnp = "SymbolSignNumber";
 				break;
 			case 4:
-				pnp = "PercentNumberSign";
+				pnp = "SymbolNumberSign";
 				break;
 			case 5:
-				pnp = "NumberSignPercent";
+				pnp = "NumberSignSymbol";
 				break;
 			case 6:
-				pnp = "NumberPercentSign";
+				pnp = "NumberSymbolSign";
 				break;
 			case 7:
-				pnp = "SignPercentSpaceNumber";
+				pnp = "SignSymbolSpaceNumber";
 				break;
 			case 8:
-				pnp = "NumberSpacePercentSign";
+				pnp = "NumberSpaceSymbolSign";
 				break;
 			case 9:
-				pnp = "PercentSpaceNumberSign";
+				pnp = "SymbolSpaceNumberSign";
 				break;
 			case 10:
-				pnp = "PercentSpaceSignNumber";
+				pnp = "SymbolSpaceSignNumber";
 				break;
 			case 11:
-				pnp = "NumberSignSpacePercent";
+				pnp = "NumberSignSpaceSymbol";
 				break;
 			case 0:
 			default:
-				pnp = "SignNumberSpacePercent";
+				pnp = "SignNumberSpaceSymbol";
 				break;
 		}
 		return $"new CultureInfo({name}, \"{n.PositiveSign}\", \"{n.NegativeSign}\", \"{n.NumberDecimalSeparator}\""
 				+ $", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}]"
-				+ $", \"{n.PercentSymbol}\", SymbolPosition.{ppp}, PercentNegativePattern.{pnp}, {n.PercentDecimalDigits}"
+				+ $", \"{n.CurrencySymbol}\", SymbolPosition.{cpp}, SymbolNegativePattern.{cnp}, {n.CurrencyDecimalDigits}"
+				+ $", \"{n.CurrencyDecimalSeparator}\", \"{n.CurrencyGroupSeparator}\", [{string.Join(",", n.CurrencyGroupSizes)}]"
+				+ $", \"{n.PercentSymbol}\", SymbolPosition.{ppp}, SymbolNegativePattern.{pnp}, {n.PercentDecimalDigits}"
 				+ $", \"{n.PercentDecimalSeparator}\", \"{n.PercentGroupSeparator}\", [{string.Join(",", n.PercentGroupSizes)}])";
 	}
 #>
