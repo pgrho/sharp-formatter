@@ -63,15 +63,15 @@
                     case 0x47: // 'G':
                     case 0x67: // 'g':
                         length = length >= 0 ? length : 15;
-                        r = Math.abs(value).toExponential(length);
-                        var ep = r.indexOf('e');
-                        var exp = parseInt(r.substring(ep + 1), 10);
+                        if (value === 0) {
+                            return '0';
+                        }
+                        var exp = Math.floor(Math.log(Math.abs(value)) / Math.LN10);
                         if (-5 < exp && exp < length) {
-                            r = (value < 0 ? (c ? c.negativeSign : "-") : "") + Math.abs(value).toFixed(length);
+                            r = Math.abs(value).toFixed(length - exp - 1);
+                            r = r.replace(/\.?0+$/, '');
                         } else {
-                            if (ep == r.length - 3) {
-                                r = r.substr(0, ep + 2) + '0' + r.charAt(r.length - 1);
-                            }
+                            r = Math.abs(exp) < 10 ? ((Math.abs(value) * Math.pow(10, -exp)).toFixed(length - 1) + (type === 0x47 ? 'E' : 'e') + (exp >= 0 ? (c ? c.positiveSign : '+') : (c ? c.negativeSign : '-')) + '0' + Math.abs(exp)) : Math.abs(value).toExponential(length - 1);
                             if (c && c.positiveSign !== '+') {
                                 r = r.replace('+', c.positiveSign);
                             }
@@ -79,7 +79,7 @@
                         if (c && c.numberDecimalSeparator !== '.') {
                             r = r.replace('.', c.numberDecimalSeparator);
                         }
-                        return r;
+                        return (value < 0 ? (c ? c.negativeSign : "-") : "") + r;
 
                     case 0x4e: // 'N'
                     case 0x6e: // 'n'
