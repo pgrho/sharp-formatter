@@ -34,6 +34,8 @@ namespace Shipwreck.SharpFormatter.Tests
             _Driver = null;
         }
 
+        #region D
+
         [TestMethod]
         public void FormattNumber_D()
             => Test(123, "d");
@@ -45,6 +47,10 @@ namespace Shipwreck.SharpFormatter.Tests
         [TestMethod]
         public void FormattNumber_D6()
             => Test(123, "d6");
+
+        #endregion D
+
+        #region E
 
         [TestMethod]
         public void FormattNumber_E()
@@ -58,6 +64,10 @@ namespace Shipwreck.SharpFormatter.Tests
         public void FormattNumber_E20()
             => Test(Math.PI * Math.Pow(2, 48), "e20");
 
+        #endregion E
+
+        #region F
+
         [TestMethod]
         public void FormattNumber_F()
             => Test(Math.PI, "f");
@@ -69,5 +79,7 @@ namespace Shipwreck.SharpFormatter.Tests
         [TestMethod]
         public void FormattNumber_F6()
             => Test(Math.PI, "f6");
+
+        #endregion F
     }
 }
