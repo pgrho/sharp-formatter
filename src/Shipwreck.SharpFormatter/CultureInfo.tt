@@ -2,6 +2,13 @@
 <#@ import namespace="System.Globalization" #>
 <#@ output extension="ts" #>
 module Shipwreck {
+	export enum NumberNegativePattern {
+		Parenthesis,
+		Left,
+		LeftWithSpace,
+		Right,
+		RightWithSpace,
+	}
     export class CultureInfo {
 		
 		private static _cache: { [name: string]: CultureInfo };
@@ -10,10 +17,23 @@ module Shipwreck {
 		
 		public name: string;
 		public negativeSign: string;
+		public positiveSign: string;
+		public numberDecimalSeparator: string;
+		public numberDecimalDigits: number;
+		public numberNegativePattern: NumberNegativePattern;
+		public numberGroupSeparator: string;
+		public numberGroupSizes: number[];
 
-		private constructor(name: string, negativeSign: string) {
+		private constructor(name: string, negativeSign: string, positiveSign: string, numberDecimalSeparator: string, numberDecimalDigits: number
+		, numberNegativePattern: NumberNegativePattern, numberGroupSeparator: string, numberGroupSizes: number[]) {
 			this.name = name;
 			this.negativeSign = negativeSign;
+			this.positiveSign = positiveSign;
+			this.numberDecimalSeparator = numberDecimalSeparator;
+			this.numberDecimalDigits = numberDecimalDigits;
+			this.numberNegativePattern = numberNegativePattern;
+			this.numberGroupSeparator = numberGroupSeparator;
+			this.numberGroupSizes = numberGroupSizes;
 		}
 
 		public static get invariantCulture() : CultureInfo {
@@ -63,6 +83,26 @@ foreach(var c in CultureInfo.GetCultures(CultureTypes.NeutralCultures))
 <#+
 	public string GetCulture(CultureInfo c) {
 		var n = c.NumberFormat;
-		return $"new CultureInfo(\"{c.Name}\", \"{n.NegativeSign}\")";
+		string nnp;
+		switch (n.NumberNegativePattern) {
+			case 0:
+				nnp = "Parenthesis";
+				break;
+			case 2:
+				nnp = "LeftWithSpace";
+				break;
+			case 3:
+				nnp = "Right";
+				break;
+			case 4:
+				nnp = "RightWithSpace";
+				break;
+			case 1:
+			default:
+				nnp = "Left";
+				break;
+		}
+		return $"new CultureInfo(\"{c.Name}\", \"{n.NegativeSign}\", \"{n.PositiveSign}\", \"{n.NumberDecimalSeparator}\""
+				+ $", {n.NumberDecimalDigits}, NumberNegativePattern.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}])";
 	}
 #>
