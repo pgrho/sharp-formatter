@@ -27,7 +27,7 @@ namespace Shipwreck.SharpFormatter.Tests
             var exp = value.ToString(format, null);
             Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\"", value, format, exp);
             var v = value.ToDouble(null);
-            var s = _Driver.ExecuteScript(string.Format("return Shipwreck.SharpFormatter.formatNumber({0}, '{1}');",double.IsNaN(v)?"NaN": double.IsPositiveInfinity(v)? "Infinity" : double.IsNegativeInfinity(v)? "-Infinity" :  v.ToString("r"), format));
+            var s = _Driver.ExecuteScript(string.Format("return Shipwreck.SharpFormatter.formatNumber({0}, '{1}');", double.IsNaN(v) ? "NaN" : double.IsPositiveInfinity(v) ? "Infinity" : double.IsNegativeInfinity(v) ? "-Infinity" : v.ToString("r"), format));
             Assert.AreEqual(exp, s);
         }
 
@@ -41,15 +41,15 @@ namespace Shipwreck.SharpFormatter.Tests
         #region Symbol
 
         [TestMethod]
-        public void FormattNumber_PositiveInfinity()
+        public void FormatNumber_PositiveInfinity()
             => Test(double.PositiveInfinity, "g");
 
         [TestMethod]
-        public void FormattNumber_NegativeInfinity()
+        public void FormatNumber_NegativeInfinity()
             => Test(double.NegativeInfinity, "g");
 
         [TestMethod]
-        public void FormattNumber_NaN()
+        public void FormatNumber_NaN()
             => Test(double.NaN, "g");
 
         #endregion Symbol
@@ -57,27 +57,27 @@ namespace Shipwreck.SharpFormatter.Tests
         #region C
 
         [TestMethod]
-        public void FormattNumber_C()
+        public void FormatNumber_C()
             => Test(12.3, "c");
 
         [TestMethod]
-        public void FormattNumber_C2()
+        public void FormatNumber_C2()
             => Test(12.3, "c2");
 
         [TestMethod]
-        public void FormattNumber_C_3Digits()
+        public void FormatNumber_C_3Digits()
             => Test(123, "c");
 
         [TestMethod]
-        public void FormattNumber_C_4Digits()
+        public void FormatNumber_C_4Digits()
             => Test(1234, "c");
 
         [TestMethod]
-        public void FormattNumber_C_6Digits()
+        public void FormatNumber_C_6Digits()
             => Test(123456, "c");
 
         [TestMethod]
-        public void FormattNumber_C_7Digits()
+        public void FormatNumber_C_7Digits()
             => Test(1234567, "c");
 
         #endregion C
@@ -85,19 +85,19 @@ namespace Shipwreck.SharpFormatter.Tests
         #region D
 
         [TestMethod]
-        public void FormattNumber_D()
+        public void FormatNumber_D()
             => Test(123, "d");
 
         [TestMethod]
-        public void FormattNumber_D2()
+        public void FormatNumber_D2()
             => Test(123, "d2");
 
         [TestMethod]
-        public void FormattNumber_D6()
+        public void FormatNumber_D6()
             => Test(123, "d6");
 
         [TestMethod]
-        public void FormattNumber_D6_Negative()
+        public void FormatNumber_D6_Negative()
             => Test(-123, "d6");
 
         #endregion D
@@ -105,15 +105,15 @@ namespace Shipwreck.SharpFormatter.Tests
         #region E
 
         [TestMethod]
-        public void FormattNumber_E()
+        public void FormatNumber_E()
             => Test(Math.PI * Math.Pow(2, 48), "e");
 
         [TestMethod]
-        public void FormattNumber_E3()
+        public void FormatNumber_E3()
             => Test(Math.PI * Math.Pow(2, 48), "e3");
 
         [TestMethod]
-        public void FormattNumber_E20()
+        public void FormatNumber_E20()
             => Test(Math.PI * Math.Pow(2, 48), "e20");
 
         #endregion E
@@ -121,15 +121,15 @@ namespace Shipwreck.SharpFormatter.Tests
         #region F
 
         [TestMethod]
-        public void FormattNumber_F()
+        public void FormatNumber_F()
             => Test(Math.PI, "f");
 
         [TestMethod]
-        public void FormattNumber_F3()
+        public void FormatNumber_F3()
             => Test(Math.PI, "f3");
 
         [TestMethod]
-        public void FormattNumber_F6()
+        public void FormatNumber_F6()
             => Test(Math.PI, "f6");
 
         #endregion F
@@ -137,87 +137,87 @@ namespace Shipwreck.SharpFormatter.Tests
         #region G
 
         [TestMethod]
-        public void FormattNumber_G()
+        public void FormatNumber_G()
             => Test(Math.PI, "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_1()
+        public void FormatNumber_G_E_1()
             => Test(Math.PI * Math.Pow(10, 1), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_2()
+        public void FormatNumber_G_E_2()
             => Test(Math.PI * Math.Pow(10, 2), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_3()
+        public void FormatNumber_G_E_3()
             => Test(Math.PI * Math.Pow(10, 3), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_4()
+        public void FormatNumber_G_E_4()
             => Test(Math.PI * Math.Pow(10, 4), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_5()
+        public void FormatNumber_G_E_5()
             => Test(Math.PI * Math.Pow(10, 5), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_6()
+        public void FormatNumber_G_E_6()
             => Test(Math.PI * Math.Pow(10, 6), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_7()
+        public void FormatNumber_G_E_7()
             => Test(Math.PI * Math.Pow(10, 7), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_8()
+        public void FormatNumber_G_E_8()
             => Test(Math.PI * Math.Pow(10, 8), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_9()
+        public void FormatNumber_G_E_9()
             => Test(Math.PI * Math.Pow(10, 9), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_10()
+        public void FormatNumber_G_E_10()
             => Test(Math.PI * Math.Pow(10, 10), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_1()
+        public void FormatNumber_G_E_Minus_1()
             => Test(Math.PI * Math.Pow(10, -1), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_2()
+        public void FormatNumber_G_E_Minus_2()
             => Test(Math.PI * Math.Pow(10, -2), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_3()
+        public void FormatNumber_G_E_Minus_3()
             => Test(Math.PI * Math.Pow(10, -3), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_4()
+        public void FormatNumber_G_E_Minus_4()
             => Test(Math.PI * Math.Pow(10, -4), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_5()
+        public void FormatNumber_G_E_Minus_5()
             => Test(Math.PI * Math.Pow(10, -5), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_6()
+        public void FormatNumber_G_E_Minus_6()
             => Test(Math.PI * Math.Pow(10, -6), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_7()
+        public void FormatNumber_G_E_Minus_7()
             => Test(Math.PI * Math.Pow(10, -7), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_8()
+        public void FormatNumber_G_E_Minus_8()
             => Test(Math.PI * Math.Pow(10, -8), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_9()
+        public void FormatNumber_G_E_Minus_9()
             => Test(Math.PI * Math.Pow(10, -9), "g");
 
         [TestMethod]
-        public void FormattNumber_G_E_Minus_10()
+        public void FormatNumber_G_E_Minus_10()
             => Test(Math.PI * Math.Pow(10, -10), "g");
 
         #endregion G
@@ -225,19 +225,19 @@ namespace Shipwreck.SharpFormatter.Tests
         #region N
 
         [TestMethod]
-        public void FormattNumber_N_3Digits()
+        public void FormatNumber_N_3Digits()
             => Test(432.1, "n");
 
         [TestMethod]
-        public void FormattNumber_N_4Digits()
+        public void FormatNumber_N_4Digits()
             => Test(5432.1, "n");
 
         [TestMethod]
-        public void FormattNumber_N_6Digits()
+        public void FormatNumber_N_6Digits()
             => Test(765432.1, "n");
 
         [TestMethod]
-        public void FormattNumber_N_7Digits()
+        public void FormatNumber_N_7Digits()
             => Test(8765432.1, "n");
 
         #endregion N
@@ -245,27 +245,27 @@ namespace Shipwreck.SharpFormatter.Tests
         #region P
 
         [TestMethod]
-        public void FormattNumber_P()
+        public void FormatNumber_P()
             => Test(Math.PI / 10, "p");
 
         [TestMethod]
-        public void FormattNumber_P3()
+        public void FormatNumber_P3()
             => Test(Math.PI / 10, "p3");
 
         [TestMethod]
-        public void FormattNumber_P6()
+        public void FormatNumber_P6()
             => Test(Math.PI / 10, "p6");
 
         [TestMethod]
-        public void FormattNumber_P_Comma()
+        public void FormatNumber_P_Comma()
             => Test(Math.PI * 10, "p");
 
         [TestMethod]
-        public void FormattNumber_P3_Comma()
+        public void FormatNumber_P3_Comma()
             => Test(Math.PI * 10, "p3");
 
         [TestMethod]
-        public void FormattNumber_P6_Comma()
+        public void FormatNumber_P6_Comma()
             => Test(Math.PI * 10, "p6");
 
         #endregion P
@@ -273,15 +273,15 @@ namespace Shipwreck.SharpFormatter.Tests
         #region X
 
         [TestMethod]
-        public void FormattNumber_X()
+        public void FormatNumber_X()
             => Test(123, "X");
 
         [TestMethod]
-        public void FormattNumber_X8()
+        public void FormatNumber_X8()
             => Test(0xfe56, "X8");
 
         [TestMethod]
-        public void FormattNumber_x8()
+        public void FormatNumber_x8()
             => Test(0xfe56, "x8");
 
         #endregion X
