@@ -6,7 +6,7 @@
                     return (culture as CultureInfo);
                 }
             }
-            return Shipwreck.CultureInfo ? (culture ? CultureInfo.getCulture(culture.toString()) : CultureInfo.currentCulture) : null;
+            return Shipwreck.CultureInfo ? (culture !== null && culture !== undefined ? CultureInfo.getCulture(culture.toString()) : CultureInfo.currentCulture) : null;
         }
 
         public static formatNumber(value: number, format: string, culture?: string | CultureInfo) {
