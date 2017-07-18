@@ -63,7 +63,6 @@ namespace Shipwreck.SharpFormatter.Tests
         public void FormattNumber_C_7Digits()
             => Test(1234567, "c");
 
-
         #endregion C
 
         #region D
@@ -117,6 +116,94 @@ namespace Shipwreck.SharpFormatter.Tests
             => Test(Math.PI, "f6");
 
         #endregion F
+
+        #region G
+
+        [TestMethod]
+        public void FormattNumber_G()
+            => Test(Math.PI, "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_1()
+            => Test(Math.PI * Math.Pow(10, 1), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_2()
+            => Test(Math.PI * Math.Pow(10, 2), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_3()
+            => Test(Math.PI * Math.Pow(10, 3), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_4()
+            => Test(Math.PI * Math.Pow(10, 4), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_5()
+            => Test(Math.PI * Math.Pow(10, 5), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_6()
+            => Test(Math.PI * Math.Pow(10, 6), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_7()
+            => Test(Math.PI * Math.Pow(10, 7), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_8()
+            => Test(Math.PI * Math.Pow(10, 8), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_9()
+            => Test(Math.PI * Math.Pow(10, 9), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_10()
+            => Test(Math.PI * Math.Pow(10, 10), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_1()
+            => Test(Math.PI * Math.Pow(10, -1), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_2()
+            => Test(Math.PI * Math.Pow(10, -2), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_3()
+            => Test(Math.PI * Math.Pow(10, -3), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_4()
+            => Test(Math.PI * Math.Pow(10, -4), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_5()
+            => Test(Math.PI * Math.Pow(10, -5), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_6()
+            => Test(Math.PI * Math.Pow(10, -6), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_7()
+            => Test(Math.PI * Math.Pow(10, -7), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_8()
+            => Test(Math.PI * Math.Pow(10, -8), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_9()
+            => Test(Math.PI * Math.Pow(10, -9), "g");
+
+        [TestMethod]
+        public void FormattNumber_G_E_Minus_10()
+            => Test(Math.PI * Math.Pow(10, -10), "g");
+
+        #endregion G
 
         #region N
 

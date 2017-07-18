@@ -60,6 +60,26 @@
                             r = r.replace('.', c.numberDecimalSeparator);
                         }
                         return r;
+                    case 0x47: // 'G':
+                    case 0x67: // 'g':
+                        length = length >= 0 ? length : 15;
+                        r = Math.abs(value).toExponential(length);
+                        var ep = r.indexOf('e');
+                        var exp = parseInt(r.substring(ep + 1), 10);
+                        if (-5 < exp && exp < length) {
+                            r = (value < 0 ? (c ? c.negativeSign : "-") : "") + Math.abs(value).toFixed(length);
+                        } else {
+                            if (ep == r.length - 3) {
+                                r = r.substr(0, ep + 2) + '0' + r.charAt(r.length - 1);
+                            }
+                            if (c && c.positiveSign !== '+') {
+                                r = r.replace('+', c.positiveSign);
+                            }
+                        }
+                        if (c && c.numberDecimalSeparator !== '.') {
+                            r = r.replace('.', c.numberDecimalSeparator);
+                        }
+                        return r;
 
                     case 0x4e: // 'N'
                     case 0x6e: // 'n'
@@ -95,27 +115,8 @@
                 throw "Invalid format";
             }
 
-            if (/^[Gg][0-9]*$/.test(format)) {
-                var c = T._getCulture(culture);
-
-                if (value < 0) {
-                    return (c ? c.negativeSign : "-") + T.formatNumber(-value, format, c);
-                }
-
-                var length = format.length === 1 ? 15 : parseInt(format.substring(1), 10);
-                var r = T._formatNumberExponential(value, length, false, c);
-                if (/[Ee]-?[0-9]$/.test(r)) {
-                    var i = r.length - RegExp.length;
-                    var e = parseInt(format.substring(i + 1), 10);
-                    if (-5 < e && e < length) {
-                        return value.toFixed(length);
-                    }
-                }
-                return format.charAt(0) === 'G' ? r.toUpperCase() : r;
-            } else {
-                throw "Not implemented";
-                // custom:
-            }
+            // custom:
+            throw "Not implemented";
         }
         private static _padStart(value: string, length: number, padChar: string): string {
             if ((value as any).padStart) {
