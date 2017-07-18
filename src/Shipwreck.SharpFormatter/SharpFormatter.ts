@@ -32,8 +32,10 @@ module Shipwreck {
                 //    var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
                 //    var r = value.toFixed(length);
                 //    var dp = r.indexOf('.');
-                //} else if (/^[Pp][0-9]*$/.test(format)) {
-                //    // %
+            } else if (/^[Pp][0-9]*$/.test(format)) {
+                var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
+                return (value * 100).toFixed(length) + "%";
+
                 //} else if (/^[Rr][0-9]*$/.test(format)) {
                 //} else if (/^[Xx][0-9]*$/.test(format)) {
             } else if (/^.$/) {

@@ -81,5 +81,33 @@ namespace Shipwreck.SharpFormatter.Tests
             => Test(Math.PI, "f6");
 
         #endregion F
+
+        #region P
+
+        [TestMethod]
+        public void FormattNumber_P()
+            => Test(Math.PI / 10, "p");
+
+        [TestMethod]
+        public void FormattNumber_P3()
+            => Test(Math.PI / 10, "p3");
+
+        [TestMethod]
+        public void FormattNumber_P6()
+            => Test(Math.PI / 10, "p6");
+
+        [TestMethod]
+        public void FormattNumber_P_Comma()
+            => Test(Math.PI * 10, "p");
+
+        [TestMethod]
+        public void FormattNumber_P3_Comma()
+            => Test(Math.PI * 10, "p3");
+
+        [TestMethod]
+        public void FormattNumber_P6_Comma()
+            => Test(Math.PI * 10, "p6");
+
+        #endregion P
     }
 }
