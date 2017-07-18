@@ -1,0 +1,68 @@
+﻿<#@ template language="C#" debug="True" #>
+<#@ import namespace="System.Globalization" #>
+<#@ output extension="ts" #>
+module Shipwreck {
+    export class CultureInfo {
+		
+		private static _cache: { [name: string]: CultureInfo };
+		private static _invariantCulture : CultureInfo;
+		private static _currentCulture: CultureInfo;
+		
+		public name: string;
+		public negativeSign: string;
+
+		private constructor(name: string, negativeSign: string) {
+			this.name = name;
+			this.negativeSign = negativeSign;
+		}
+
+		public static get invariantCulture() : CultureInfo {
+			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = <#= GetCulture(CultureInfo.InvariantCulture) #>);
+		}
+		public static get currentCulture() : CultureInfo {
+			return CultureInfo._currentCulture || (CultureInfo._currentCulture = CultureInfo.getCulture((navigator as any).userLanguage || (navigator as any).browserLanguage || navigator.language));
+		}
+
+		public static getCulture(name: string): CultureInfo {
+			if (name) {
+				var k = name.substring(0, 2).toLowerCase();
+				var c : CultureInfo;
+				if (CultureInfo._cache) {
+					c = CultureInfo._cache[k];
+					if (c) {
+						return c;
+					}
+				} else {
+					CultureInfo._cache = {};
+				}
+				switch (k) {
+<#
+foreach(var c in CultureInfo.GetCultures(CultureTypes.NeutralCultures))
+{
+	if(c.Name?.Length != 2)
+	{
+		continue;
+	}
+#>
+					case "<#= c.Name.ToLower() #>":
+						c = <#= GetCulture(c) #>;
+						break;
+<#
+}
+#>
+				}
+				if (c) {
+					CultureInfo._cache[k] = c;
+					return c;
+				}
+			}
+			return CultureInfo.invariantCulture;
+		}
+	}
+}
+<#+
+	public string GetCulture(CultureInfo c) {
+		var n = c.NumberFormat;
+		return $"new CultureInfo(\"{c.Name}\", \"{n.NegativeSign}\")";
+	}
+#>

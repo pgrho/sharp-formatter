@@ -1,9 +1,22 @@
 module Shipwreck {
     export class SharpFormatter {
-        public static formatNumber(value: number, format: string) {
-            if (!format) {
-                return SharpFormatter.formatNumber(value, "g");
+
+        private static _getCulture(culture: string | CultureInfo) {
+            if (culture) {
+                if ((culture as CultureInfo).negativeSign) {
+                    return culture;
+                }
             }
+            return Shipwreck.CultureInfo ? (culture ? CultureInfo.getCulture(culture.toString()) : CultureInfo.currentCulture) : null;
+        }
+
+        public static formatNumber(value: number, format: string, culture?: string | CultureInfo) {
+            if (!format) {
+                return SharpFormatter.formatNumber(value, "g", culture);
+            }
+
+            var c = SharpFormatter._getCulture(culture);
+
             /* if (/^[Cc][0-9]*$/.test(format)) {
             } else */ if (/^[Dd][0-9]*$/.test(format)) {
                 var length = format.length === 1 ? 0 : parseInt(format.substring(1), 10);

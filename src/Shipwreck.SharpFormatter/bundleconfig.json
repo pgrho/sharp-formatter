@@ -4,5 +4,11 @@
     "inputFiles": [
       "SharpFormatter.js"
     ]
+  },
+  {
+    "outputFileName": "CultureInfo.min.js",
+    "inputFiles": [
+      "CultureInfo.js"
+    ]
   }
 ]
