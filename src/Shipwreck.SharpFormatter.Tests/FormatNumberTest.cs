@@ -85,6 +85,26 @@ namespace Shipwreck.SharpFormatter.Tests
 
         #endregion F
 
+        #region N
+
+        [TestMethod]
+        public void FormattNumber_N_3Digits()
+            => Test(432.1, "n");
+
+        [TestMethod]
+        public void FormattNumber_N_4Digits()
+            => Test(5432.1, "n");
+
+        [TestMethod]
+        public void FormattNumber_N_6Digits()
+            => Test(765432.1, "n");
+
+        [TestMethod]
+        public void FormattNumber_N_7Digits()
+            => Test(8765432.1, "n");
+
+        #endregion N
+
         #region P
 
         [TestMethod]

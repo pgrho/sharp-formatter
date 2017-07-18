@@ -13,13 +13,13 @@ module Shipwreck {
                 }
                 return r;
             } else if (/^[Ee][0-9]*$/.test(format)) {
-                return this._formatExponentialNumber(value, format.length === 1 ? 6 : parseInt(format.substring(1), 10), format.charAt(0) === 'E');
+                return this._formatNumberExponential(value, format.length === 1 ? 6 : parseInt(format.substring(1), 10), format.charAt(0) === 'E');
             } else if (/^[Ff][0-9]*$/.test(format)) {
                 var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
                 return value.toFixed(length);
             } else if (/^[Gg][0-9]*$/.test(format)) {
                 var length = format.length === 1 ? 15 : parseInt(format.substring(1), 10);
-                var r = SharpFormatter._formatExponentialNumber(value, length, false);
+                var r = SharpFormatter._formatNumberExponential(value, length, false);
                 if (/[Ee]-?[0-9]$/.test(r)) {
                     var i = r.length - RegExp.length;
                     var e = parseInt(format.substring(i + 1), 10);
@@ -28,13 +28,12 @@ module Shipwreck {
                     }
                 }
                 return format.charAt(0) === 'G' ? r.toUpperCase() : r;
-                //} else if (/^[Nn][0-9]*$/.test(format)) {
-                //    var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
-                //    var r = value.toFixed(length);
-                //    var dp = r.indexOf('.');
+            } else if (/^[Nn][0-9]*$/.test(format)) {
+                var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
+                return SharpFormatter._formatNumberNumeric(value, length);
             } else if (/^[Pp][0-9]*$/.test(format)) {
                 var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
-                return (value * 100).toFixed(length) + "%";
+                return SharpFormatter._formatNumberNumeric(value * 100, length) + '%';
 
                 //} else if (/^[Rr][0-9]*$/.test(format)) {
                 //} else if (/^[Xx][0-9]*$/.test(format)) {
@@ -45,11 +44,23 @@ module Shipwreck {
                 // custom:
             }
         }
-        private static _formatExponentialNumber(value: number, length: number, capital: boolean): string {
+        private static _formatNumberExponential(value: number, length: number, capital: boolean): string {
             length = length >= 0 ? length : 6;
             var r = value.toExponential(length);
             r = r.replace(/[-+][0-9]{1,2}$/, m => m.charAt(0) + (m.length === 2 ? "00" : "0") + m.substring(1));
             return capital ? r.toUpperCase() : r;
+        }
+        private static _formatNumberNumeric(value: number, length: number): string {
+            var r = value.toFixed(length);
+            var dp = r.indexOf('.');
+            dp = dp < 0 ? r.length : dp;
+            for (var i = dp - 3; i > 0; i -= 3) {
+                if (i === 1 && (r.charAt(0) === '+' || r.charAt(0) === '-')) {
+                    break;
+                }
+                r = r.substr(0, i) + "," + r.substring(i);
+            }
+            return r;
         }
     }
 }
