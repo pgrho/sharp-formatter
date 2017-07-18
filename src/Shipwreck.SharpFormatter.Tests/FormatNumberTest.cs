@@ -23,8 +23,11 @@ namespace Shipwreck.SharpFormatter.Tests
             {
                 _Driver = CreateWebDriver();
             }
+
             var s = _Driver.ExecuteScript(string.Format("return Shipwreck.SharpFormatter.formatNumber({0:r}, '{1}');", value.ToDouble(null), format));
-            Assert.AreEqual(value.ToString(format, null), s);
+            var exp = value.ToString(format, null);
+            Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\"", value, format, exp);
+            Assert.AreEqual(exp, s);
         }
 
         [ClassCleanup]
