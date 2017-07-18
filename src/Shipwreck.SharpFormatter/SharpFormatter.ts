@@ -15,6 +15,19 @@
                 return T.formatNumber(value, "g", culture);
             }
 
+            value = value * 1;
+
+            if (!isFinite(value)) {
+                var c = T._getCulture(culture);
+                if (isNaN(value)) {
+                    return c ? c.NaNSymbol : "NaN";
+                } else if (value > 0) {
+                    return c ? c.positiveInifinitySymbol : "Infinity";
+                } else {
+                    return c ? c.negativeInifinitySymbol : "-Infinity";
+                }
+            }
+
             if (/^[C-GNPRX][0-9]*$/i.test(format)) {
                 var type = format.charCodeAt(0);
                 var length = format.length === 1 ? -1 : parseInt(format.substring(1), 10);

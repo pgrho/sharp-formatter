@@ -24,9 +24,10 @@ namespace Shipwreck.SharpFormatter.Tests
                 _Driver = CreateWebDriver();
             }
 
-            var s = _Driver.ExecuteScript(string.Format("return Shipwreck.SharpFormatter.formatNumber({0:r}, '{1}');", value.ToDouble(null), format));
             var exp = value.ToString(format, null);
             Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\"", value, format, exp);
+            var v = value.ToDouble(null);
+            var s = _Driver.ExecuteScript(string.Format("return Shipwreck.SharpFormatter.formatNumber({0}, '{1}');",double.IsNaN(v)?"NaN": double.IsPositiveInfinity(v)? "Infinity" : double.IsNegativeInfinity(v)? "-Infinity" :  v.ToString("r"), format));
             Assert.AreEqual(exp, s);
         }
 
@@ -36,6 +37,22 @@ namespace Shipwreck.SharpFormatter.Tests
             _Driver?.Close();
             _Driver = null;
         }
+
+        #region Symbol
+
+        [TestMethod]
+        public void FormattNumber_PositiveInfinity()
+            => Test(double.PositiveInfinity, "g");
+
+        [TestMethod]
+        public void FormattNumber_NegativeInfinity()
+            => Test(double.NegativeInfinity, "g");
+
+        [TestMethod]
+        public void FormattNumber_NaN()
+            => Test(double.NaN, "g");
+
+        #endregion Symbol
 
         #region C
 

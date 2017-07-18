@@ -38,6 +38,11 @@ module Shipwreck {
 		public name: string;
 		public positiveSign: string;
 		public negativeSign: string;
+		
+		public positiveInifinitySymbol: string;
+		public negativeInifinitySymbol: string;
+		public NaNSymbol: string;
+
 		public numberDecimalSeparator: string;
 		public numberDecimalDigits: number;
 		public numberNegativePattern: SymbolPosition;
@@ -60,7 +65,9 @@ module Shipwreck {
 		public percentGroupSeparator: string;
 		public percentGroupSizes: number[];
 		
-		private constructor(name: string, positiveSign: string, negativeSign: string, numberDecimalSeparator: string, numberDecimalDigits: number
+		private constructor(name: string, positiveSign: string, negativeSign: string
+		, positiveInifinitySymbol: string, negativeInifinitySymbol: string, NaNSymbol: string
+		, numberDecimalSeparator: string, numberDecimalDigits: number
 		, numberNegativePattern: SymbolPosition, numberGroupSeparator: string, numberGroupSizes: number[]
 		, currencySymbol: string, currencyPositivePattern: SymbolPosition, currencyNegativePattern: SymbolNegativePattern
 		, currencyDecimalDigits: number, currencyDecimalSeparator: string, currencyGroupSeparator: string, currencyGroupSizes: number[]
@@ -69,6 +76,11 @@ module Shipwreck {
 			this.name = name;
 			this.positiveSign = positiveSign;
 			this.negativeSign = negativeSign;
+
+			this.positiveInifinitySymbol = positiveInifinitySymbol;
+			this.negativeInifinitySymbol = negativeInifinitySymbol;
+			this.NaNSymbol = NaNSymbol;
+
 			this.numberDecimalSeparator = numberDecimalSeparator;
 			this.numberDecimalDigits = numberDecimalDigits;
 			this.numberNegativePattern = numberNegativePattern;
@@ -284,8 +296,9 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 				pnp = "SignNumberSpaceSymbol";
 				break;
 		}
-		return $"new CultureInfo({name}, \"{n.PositiveSign}\", \"{n.NegativeSign}\", \"{n.NumberDecimalSeparator}\""
-				+ $", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}]"
+		return $"new CultureInfo({name}, \"{n.PositiveSign}\", \"{n.NegativeSign}\""
+				+ $", \"{n.PositiveInfinitySymbol}\", \"{n.NegativeInfinitySymbol}\", \"{n.NaNSymbol}\""
+				+ $", \"{n.NumberDecimalSeparator}\", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}]"
 				+ $", \"{n.CurrencySymbol}\", SymbolPosition.{cpp}, SymbolNegativePattern.{cnp}, {n.CurrencyDecimalDigits}"
 				+ $", \"{n.CurrencyDecimalSeparator}\", \"{n.CurrencyGroupSeparator}\", [{string.Join(",", n.CurrencyGroupSizes)}]"
 				+ $", \"{n.PercentSymbol}\", SymbolPosition.{ppp}, SymbolNegativePattern.{pnp}, {n.PercentDecimalDigits}"
