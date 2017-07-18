@@ -4,14 +4,10 @@ module Shipwreck {
             if (!format) {
                 return SharpFormatter.formatNumber(value, "g");
             }
-            if (/^[Cc][0-9]*$/.test(format)) {
-            } else if (/^[Dd][0-9]*$/.test(format)) {
+            /* if (/^[Cc][0-9]*$/.test(format)) {
+            } else */ if (/^[Dd][0-9]*$/.test(format)) {
                 var length = format.length === 1 ? 0 : parseInt(format.substring(1), 10);
-                var r = value.toFixed();
-                while (r.length < length) {
-                    r = '0' + r;
-                }
-                return r;
+                return SharpFormatter._padStart(value.toFixed(), length, '0');
             } else if (/^[Ee][0-9]*$/.test(format)) {
                 return this._formatNumberExponential(value, format.length === 1 ? 6 : parseInt(format.substring(1), 10), format.charAt(0) === 'E');
             } else if (/^[Ff][0-9]*$/.test(format)) {
@@ -36,13 +32,25 @@ module Shipwreck {
                 return SharpFormatter._formatNumberNumeric(value * 100, length) + '%';
 
                 //} else if (/^[Rr][0-9]*$/.test(format)) {
-                //} else if (/^[Xx][0-9]*$/.test(format)) {
+            } else if (/^[Xx][0-9]*$/.test(format)) {
+                var length = format.length === 1 ? 0 : parseInt(format.substring(1), 10);
+                var r = SharpFormatter._padStart(value.toString(16), length, '0');
+                return format.charAt(0) === 'X' ? r.toUpperCase() : r;
             } else if (/^.$/) {
                 throw "Invalid format";
             } else {
                 throw "Not implemented";
                 // custom:
             }
+        }
+        private static _padStart(value: string, length: number, padChar: string): string {
+            if ((value as any).padStart) {
+                return (value as any).padStart(length, padChar);
+            }
+            while (value.length < length) {
+                value = padChar + value;
+            }
+            return value;
         }
         private static _formatNumberExponential(value: number, length: number, capital: boolean): string {
             length = length >= 0 ? length : 6;

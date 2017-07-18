@@ -132,5 +132,21 @@ namespace Shipwreck.SharpFormatter.Tests
             => Test(Math.PI * 10, "p6");
 
         #endregion P
+
+        #region X
+
+        [TestMethod]
+        public void FormattNumber_X()
+            => Test(123, "X");
+
+        [TestMethod]
+        public void FormattNumber_X8()
+            => Test(0xfe56, "X8");
+
+        [TestMethod]
+        public void FormattNumber_x8()
+            => Test(0xfe56, "x8");
+
+        #endregion X
     }
 }
