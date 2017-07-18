@@ -52,13 +52,13 @@ module Shipwreck {
                         if (value < 0) {
                             if (c) {
                                 switch (c.numberNegativePattern) {
-                                    case NumberNegativePattern.Parenthesis:
+                                    case SymbolPosition.Parenthesis:
                                         return `(${r})`;
-                                    case NumberNegativePattern.LeftWithSpace:
+                                    case SymbolPosition.LeftWithSpace:
                                         return c.negativeSign + " " + r;
-                                    case NumberNegativePattern.Right:
+                                    case SymbolPosition.Right:
                                         return r + c.negativeSign;
-                                    case NumberNegativePattern.RightWithSpace:
+                                    case SymbolPosition.RightWithSpace:
                                         return r + " " + c.negativeSign;
                                 }
                             }

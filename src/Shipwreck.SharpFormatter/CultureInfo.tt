@@ -1,44 +1,79 @@
 ﻿<#@ template language="C#" debug="True" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Globalization" #>
 <#@ output extension="ts" #>
 module Shipwreck {
-	export enum NumberNegativePattern {
+	export enum SymbolPosition {
 		Parenthesis,
 		Left,
 		LeftWithSpace,
 		Right,
 		RightWithSpace,
 	}
-    export class CultureInfo {
+	export enum PercentNegativePattern {
+		SignNumberSpacePercent,
+		SignNumberPercent,
+		SignPercentNumber,
+		PercentSignNumber,
+		PercentNumberSign,
+		NumberSignPercent,
+		NumberPercentSign,
+		SignPercentSpaceNumber,
+		NumberSpacePercentSign,
+		PercentSpaceNumberSign,
+		PercentSpaceSignNumber,
+		NumberSignSpacePercent
+	}
+	export class CultureInfo {
 		
 		private static _cache: { [name: string]: CultureInfo };
 		private static _invariantCulture : CultureInfo;
 		private static _currentCulture: CultureInfo;
 		
 		public name: string;
-		public negativeSign: string;
 		public positiveSign: string;
+		public negativeSign: string;
 		public numberDecimalSeparator: string;
 		public numberDecimalDigits: number;
-		public numberNegativePattern: NumberNegativePattern;
+		public numberNegativePattern: SymbolPosition;
 		public numberGroupSeparator: string;
 		public numberGroupSizes: number[];
-
-		private constructor(name: string, negativeSign: string, positiveSign: string, numberDecimalSeparator: string, numberDecimalDigits: number
-		, numberNegativePattern: NumberNegativePattern, numberGroupSeparator: string, numberGroupSizes: number[]) {
+		
+		public percentSymbol: string;
+		public percentPositivePattern: SymbolPosition;
+		public percentNegativePattern: PercentNegativePattern;
+		public percentDecimalDigits: number;
+		public percentDecimalSeparator: string;
+		public percentGroupSeparator: string;
+		public percentGroupSizes: number[];
+		
+		private constructor(name: string, positiveSign: string, negativeSign: string, numberDecimalSeparator: string, numberDecimalDigits: number
+		, numberNegativePattern: SymbolPosition, numberGroupSeparator: string, numberGroupSizes: number[]
+		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: PercentNegativePattern
+		, percentDecimalDigits: number, percentDecimalSeparator: string, percentGroupSeparator: string, percentGroupSizes: number[]) {
 			this.name = name;
-			this.negativeSign = negativeSign;
 			this.positiveSign = positiveSign;
+			this.negativeSign = negativeSign;
 			this.numberDecimalSeparator = numberDecimalSeparator;
 			this.numberDecimalDigits = numberDecimalDigits;
 			this.numberNegativePattern = numberNegativePattern;
 			this.numberGroupSeparator = numberGroupSeparator;
 			this.numberGroupSizes = numberGroupSizes;
+
+			this.percentSymbol = percentSymbol;
+			this.percentPositivePattern = percentPositivePattern;
+			this.percentNegativePattern = percentNegativePattern;
+			this.percentDecimalDigits = percentDecimalDigits;
+			this.percentDecimalSeparator = percentDecimalSeparator;
+			this.percentGroupSeparator = percentGroupSeparator ;
+			this.percentGroupSizes = percentGroupSizes;
 		}
 
 		public static get invariantCulture() : CultureInfo {
-			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = <#= GetCulture(CultureInfo.InvariantCulture) #>);
+			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = <#= GetCulture("\"\"", CultureInfo.InvariantCulture) #>);
 		}
+
 		public static get currentCulture() : CultureInfo {
 			return CultureInfo._currentCulture || (CultureInfo._currentCulture = CultureInfo.getCulture((navigator as any).userLanguage || (navigator as any).browserLanguage || navigator.language));
 		}
@@ -57,15 +92,15 @@ module Shipwreck {
 				}
 				switch (k) {
 <#
-foreach(var c in CultureInfo.GetCultures(CultureTypes.NeutralCultures))
+foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e => e.Name?.Length == 2).GroupBy(e => GetCulture(null, e)))
 {
-	if(c.Name?.Length != 2)
-	{
-		continue;
-	}
+	foreach (var c in g) {
 #>
 					case "<#= c.Name.ToLower() #>":
-						c = <#= GetCulture(c) #>;
+<#
+	}
+#>
+						c = <#= GetCulture("k", g.First()) #>;
 						break;
 <#
 }
@@ -81,7 +116,7 @@ foreach(var c in CultureInfo.GetCultures(CultureTypes.NeutralCultures))
 	}
 }
 <#+
-	public string GetCulture(CultureInfo c) {
+	public string GetCulture(string name, CultureInfo c) {
 		var n = c.NumberFormat;
 		string nnp;
 		switch (n.NumberNegativePattern) {
@@ -102,7 +137,65 @@ foreach(var c in CultureInfo.GetCultures(CultureTypes.NeutralCultures))
 				nnp = "Left";
 				break;
 		}
-		return $"new CultureInfo(\"{c.Name}\", \"{n.NegativeSign}\", \"{n.PositiveSign}\", \"{n.NumberDecimalSeparator}\""
-				+ $", {n.NumberDecimalDigits}, NumberNegativePattern.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}])";
+		string ppp;
+		switch	(n.PercentPositivePattern) {
+			case 1:
+				ppp = "Right";
+				break;
+			case 2:
+				ppp = "Left";
+				break;
+			case 3:
+				ppp = "LeftWithSpace";
+				break;
+			case 0:
+			default:
+				ppp = "RightWithSpace";
+				break;
+		}
+		string pnp;
+		switch (n.PercentNegativePattern) {
+			case 1:
+				pnp = "SignNumberPercent";
+				break;
+			case 2:
+				pnp = "SignPercentNumber";
+				break;
+			case 3:
+				pnp = "PercentSignNumber";
+				break;
+			case 4:
+				pnp = "PercentNumberSign";
+				break;
+			case 5:
+				pnp = "NumberSignPercent";
+				break;
+			case 6:
+				pnp = "NumberPercentSign";
+				break;
+			case 7:
+				pnp = "SignPercentSpaceNumber";
+				break;
+			case 8:
+				pnp = "NumberSpacePercentSign";
+				break;
+			case 9:
+				pnp = "PercentSpaceNumberSign";
+				break;
+			case 10:
+				pnp = "PercentSpaceSignNumber";
+				break;
+			case 11:
+				pnp = "NumberSignSpacePercent";
+				break;
+			case 0:
+			default:
+				pnp = "SignNumberSpacePercent";
+				break;
+		}
+		return $"new CultureInfo({name}, \"{n.PositiveSign}\", \"{n.NegativeSign}\", \"{n.NumberDecimalSeparator}\""
+				+ $", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}]"
+				+ $", \"{n.PercentSymbol}\", SymbolPosition.{ppp}, PercentNegativePattern.{pnp}, {n.PercentDecimalDigits}"
+				+ $", \"{n.PercentDecimalSeparator}\", \"{n.PercentGroupSeparator}\", [{string.Join(",", n.PercentGroupSizes)}])";
 	}
 #>
