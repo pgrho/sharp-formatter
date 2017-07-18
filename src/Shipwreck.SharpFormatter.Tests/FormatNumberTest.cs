@@ -51,6 +51,10 @@ namespace Shipwreck.SharpFormatter.Tests
         public void FormattNumber_D6()
             => Test(123, "d6");
 
+        [TestMethod]
+        public void FormattNumber_D6_Negative()
+            => Test(-123, "d6");
+
         #endregion D
 
         #region E
