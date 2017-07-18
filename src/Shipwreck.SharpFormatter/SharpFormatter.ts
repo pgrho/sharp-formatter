@@ -48,7 +48,12 @@ module Shipwreck {
 
                     case 0x4e: // 'N'
                     case 0x6e: // 'n'
-                        var r = T._formatNumberNumeric(Math.abs(value), length >= 0 ? length : (c ? c.numberDecimalDigits : 2), c);
+                        var r = T._formatNumberNumeric(
+                            Math.abs(value),
+                            length >= 0 ? length : (c ? c.numberDecimalDigits : 2),
+                            c ? c.percentDecimalSeparator : null,
+                            c ? c.numberGroupSeparator : null,
+                            c ? c.numberGroupSizes : null);
                         if (value < 0) {
                             if (c) {
                                 switch (c.numberNegativePattern) {
@@ -65,20 +70,64 @@ module Shipwreck {
                             return (c ? c.negativeSign : "-") + r;
                         }
                         return r;
+
+                    case 0x50: // 'P'
+                    case 0x70: // 'p'
+                        var r = T._formatNumberNumeric(
+                            Math.abs(value) * 100,
+                            length >= 0 ? length : (c ? c.percentDecimalDigits : 2),
+                            c ? c.percentDecimalSeparator : null,
+                            c ? c.percentGroupSeparator : null,
+                            c ? c.percentGroupSizes : null);
+                        var ps = c ? c.percentSymbol : '%';
+                        if (value < 0) {
+                            var ns = c ? c.negativeSign : "-";
+                            if (c) {
+                                switch (c.percentNegativePattern) {
+                                    case PercentNegativePattern.SignNumberPercent:
+                                        return ns + r + ps;
+                                    case PercentNegativePattern.SignPercentNumber:
+                                        return ns + ps + r;
+                                    case PercentNegativePattern.PercentSignNumber:
+                                        return ps + ns + r;
+                                    case PercentNegativePattern.PercentNumberSign:
+                                        return ps + r + ns;
+                                    case PercentNegativePattern.NumberSignPercent:
+                                        return r + ns + ps;
+                                    case PercentNegativePattern.NumberPercentSign:
+                                        return r + ps + ns;
+                                    case PercentNegativePattern.SignPercentSpaceNumber:
+                                        return ns + ps + ' ' + r;
+                                    case PercentNegativePattern.NumberSpacePercentSign:
+                                        return r + ' ' + ps + ns;
+                                    case PercentNegativePattern.PercentSpaceNumberSign:
+                                        return ps + ' ' + r + ns;
+                                    case PercentNegativePattern.PercentSpaceSignNumber:
+                                        return ps + ' ' + ns + r;
+                                    case PercentNegativePattern.NumberSignSpacePercent:
+                                        return r + ns + ' ' + ps;
+                                }
+                            }
+                            return ns + r + ' ' + ps;
+                        } else {
+                            if (c) {
+                                switch (c.percentPositivePattern) {
+                                    case SymbolPosition.Left:
+                                        return ps + r;
+                                    case SymbolPosition.LeftWithSpace:
+                                        return ps + ' ' + r;
+                                    case SymbolPosition.Right:
+                                        return r + ps;
+                                }
+                            }
+                            return r + ' ' + ps;
+                        }
                 }
             } else if (/^.$/) {
                 throw "Invalid format";
             }
 
             var c = T._getCulture(culture);
-
-            if (/^[Pp][0-9]*$/.test(format)) {
-                // PercentPositivePattern
-                // PercentNegativePattern
-
-                var length = format.length === 1 ? 2 : parseInt(format.substring(1), 10);
-                return T._formatNumberNumeric(value * 100, length, c) + '%';
-            }
 
             if (value < 0) {
                 return (c ? c.negativeSign : "-") + T.formatNumber(-value, format, c);
@@ -121,21 +170,21 @@ module Shipwreck {
             }
             return capital ? r.toUpperCase() : r;
         }
-        private static _formatNumberNumeric(value: number, length: number, c: CultureInfo): string {
+        private static _formatNumberNumeric(value: number, length: number, decimalSeparator: string, groupSeperator: string, groupSizes: number[]): string {
             var r = value.toFixed(length);
             var dp = r.indexOf('.');
             if (dp < 0) {
                 dp = r.length;
-            } else if (c && c.numberDecimalSeparator !== '.') {
-                r = r.substr(0, dp) + c.numberDecimalSeparator + r.substring(dp + 1);
+            } else if (decimalSeparator !== '.') {
+                r = r.substr(0, dp) + decimalSeparator + r.substring(dp + 1);
             }
-            var size = c ? c.numberGroupSizes[0] : 3;
+            var size = groupSizes ? groupSizes[0] : 3;
             var si = 0;
-            var sep = c ? c.numberGroupSeparator : ",";
+            var sep = groupSeperator || ",";
             for (var i = dp - size; i > 0; i -= size) {
                 r = r.substr(0, i) + sep + r.substring(i);
-                if (c && ++si < c.numberGroupSizes.length) {
-                    size = c.numberGroupSizes[si];
+                if (groupSizes && ++si < groupSizes.length) {
+                    size = groupSizes[si];
                     if (size == 0) {
                         break;
                     }
