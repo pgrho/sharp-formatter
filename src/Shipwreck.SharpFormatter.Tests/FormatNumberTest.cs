@@ -3,9 +3,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium.PhantomJS;
 using System;
-using System.Globalization;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 
 namespace Shipwreck.SharpFormatter.Tests
 {
@@ -315,9 +314,37 @@ namespace Shipwreck.SharpFormatter.Tests
 
         #region Custom
 
+        #region Decimal
+
         [TestMethod]
-        public void FormatNumber_Custom1()
-            => Test(123, "00-00-00");
+        public void FormatNumber_Decimal()
+            => Test(123.45, "00");
+
+        [TestMethod]
+        public void FormatNumber_Decimal_1Digits()
+            => Test(1.2, "00");
+
+        [TestMethod]
+        public void FormatNumber_Decimal_4Digits()
+            => Test(1234.5, "00");
+
+        [TestMethod]
+        public void FormatNumber_Decimal_9Digits()
+            => Test(123456789.8, "00");
+
+        [TestMethod]
+        public void FormatNumber_Decimal_Grouped()
+            => Test(123.45, "0,0");
+
+        [TestMethod]
+        public void FormatNumber_Decimal_4Digits_Grouped()
+            => Test(1234.5, "0,0");
+
+        [TestMethod]
+        public void FormatNumber_Decimal_9Digits_Grouped()
+            => Test(123456789.8, "0,0");
+
+        #endregion Decimal
 
         [TestMethod]
         public void FormatNumber_Custom2()
@@ -325,7 +352,7 @@ namespace Shipwreck.SharpFormatter.Tests
 
         [TestMethod]
         public void FormatNumber_Custom3()
-            => Test(123, "##-##-#,#");
+            => Test(123, "###-##,#");
 
         [TestMethod]
         public void FormatNumber_Custom4()
@@ -373,6 +400,7 @@ namespace Shipwreck.SharpFormatter.Tests
         [TestMethod]
         public void FormatNumber_Custom_TwoDot()
             => Test(-123, "0.0.0");
+
         [TestMethod]
         public void FormatNumber_Custom_Placeholer()
             => Test(-1, "0#0");

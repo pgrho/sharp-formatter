@@ -339,10 +339,16 @@
                 var il = 0;
                 var fl = 0;
                 var fp = -1;
+                var fz = -1;
+                var lz = -1;
                 for (var i = 0; i < sec.length; i++) {
                     var t = sec[i];
                     switch (t.type) {
                         case TOKEN_TYPE_ZERO:
+                            if (fz < 0) {
+                                fz = i;
+                            }
+                            lz = i;
                         case TOKEN_TYPE_NUMBER:
                             if (dotPos >= 0) {
                                 fl++;
@@ -390,6 +396,12 @@
                             break;
                     }
                 }
+                for (var i = fz + 1; i < lz; i++) {
+                    var t = sec[i];
+                    if (t.type === TOKEN_TYPE_NUMBER) {
+                        t.type = TOKEN_TYPE_ZERO;
+                    }
+                }
                 r.push({
                     tokens: sec,
                     exponential: hasExp,
@@ -426,6 +438,9 @@
             var r = "";
 
             var ple = -sec.fractionDigits;
+            var sizes = sec.grouped ? (c ? c.numberGroupSizes : [3]) : null;
+            var gs = sizes ? sizes[0] - 1 : NaN;
+            var gi = 1;
 
             for (var i = sec.tokens.length - 1; i >= 0; i--) {
                 var t = sec.tokens[i];
@@ -436,9 +451,30 @@
                         var j = dp - ple - (ple >= 0 ? 1 : 0);
                         if (0 <= j && j < vs.length) {
                             if (i === sec.firstPlaceholder) {
-                                r = vs.substring(0, j + 1) + r;
+                                if (sec.grouped) {
+                                    while (j >= 0) {
+                                        if (0 < j && gs === ple) {
+                                            r = (c ? c.numberGroupSeparator : ',') + vs.charAt(j) + r;
+                                            gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
+                                        } else {
+                                            r = vs.charAt(j) + r;
+                                        }
+                                        ple++;
+                                        j--;
+                                    }
+                                } else {
+                                    r = vs.substring(0, j + 1) + r;
+                                }
                             } else {
-                                r = vs.charAt(j) + r;
+                                var prev = sec.tokens[i - 1];
+                                if (sec.grouped
+                                    && gs === ple
+                                    && (prev.type === TOKEN_TYPE_ZERO || (prev.type === TOKEN_TYPE_NUMBER && j > 0))) {
+                                    r = (c ? c.numberGroupSeparator : ',') + vs.charAt(j) + r;
+                                    gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
+                                } else {
+                                    r = vs.charAt(j) + r;
+                                }
                             }
                         } else if (t.type === TOKEN_TYPE_ZERO) {
                             r = '0' + r;
