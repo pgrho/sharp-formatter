@@ -7,6 +7,26 @@
     const TOKEN_TYPE_PERCENT = 4;
     const TOKEN_TYPE_PERMILL = 5;
     const TOKEN_TYPE_EXPONENTIAL = 6;
+
+    function _padStart(value: string, length: number, padChar: string): string {
+        if ((value as any).padStart) {
+            return (value as any).padStart(length, padChar);
+        }
+        while (value.length < length) {
+            value = padChar + value;
+        }
+        return value;
+    }
+    function _padEnd(value: string, length: number, padChar: string): string {
+        if ((value as any).padEnd) {
+            return (value as any).padEnd(length, padChar);
+        }
+        while (value.length < length) {
+            value += padChar;
+        }
+        return value;
+    }
+
     interface IToken {
         token: string;
         type: number;
@@ -25,6 +45,7 @@
         canFormat(obj: any): boolean;
         format(obj: any, format: string, culture: CultureInfo): string;
     }
+
     export class SharpFormatter {
         private static _getCulture(culture: string | CultureInfo): CultureInfo {
             if (culture) {
@@ -166,7 +187,7 @@
                                 var v = args[index];
                                 var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
                                 var vs = formatter ? formatter.format(v, null, ci) : (v ? v.toString() : '');
-                                r += alignSign > 0 ? SharpFormatter._padStart(vs, align, ' ') : SharpFormatter._padEnd(vs, align, ' ');
+                                r += alignSign > 0 ? _padStart(vs, align, ' ') : _padEnd(vs, align, ' ');
                                 s = S_LITERAL;
                                 break;
                             default:
@@ -179,7 +200,7 @@
                             var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
                             var vs = formatter ? formatter.format(v, valueFormat, ci) : (v ? v.toString() : '');
                             if (align > 0) {
-                                vs = alignSign > 0 ? SharpFormatter._padStart(vs, align, ' ') : SharpFormatter._padEnd(vs, align, ' ');
+                                vs = alignSign > 0 ? _padStart(vs, align, ' ') : _padEnd(vs, align, ' ');
                             }
                             r += vs;
                             s = S_LITERAL;
@@ -217,7 +238,7 @@
                 switch (type) {
                     case 0x58: // 'X'
                     case 0x78: // 'x'
-                        var r = T._padStart(value.toString(16), Math.max(0, length), '0');
+                        var r = _padStart(value.toString(16), Math.max(0, length), '0');
                         return format.charAt(0) === 'X' ? r.toUpperCase() : r;
                 }
 
@@ -242,7 +263,7 @@
                     case 0x44: // 'D':
                     case 0x64: // 'd':
                         return (value < 0 ? (c ? c.negativeSign : "-") : "") +
-                            T._padStart(Math.abs(value).toFixed(), Math.max(0, length), '0');
+                            _padStart(Math.abs(value).toFixed(), Math.max(0, length), '0');
                     case 0x45: // 'E':
                     case 0x65: // 'e':
                         return (value < 0 ? (c ? c.negativeSign : "-") : "") +
@@ -317,24 +338,7 @@
 
             return T._formatNumberCustom(value, format, T._getCulture(culture));
         }
-        private static _padStart(value: string, length: number, padChar: string): string {
-            if ((value as any).padStart) {
-                return (value as any).padStart(length, padChar);
-            }
-            while (value.length < length) {
-                value = padChar + value;
-            }
-            return value;
-        }
-        private static _padEnd(value: string, length: number, padChar: string): string {
-            if ((value as any).padEnd) {
-                return (value as any).padEnd(length, padChar);
-            }
-            while (value.length < length) {
-                value += padChar;
-            }
-            return value;
-        }
+
         private static _formatNumberExponential(value: number, length: number, capital: boolean, c: CultureInfo): string {
             length = length >= 0 ? length : 6;
             var r = value.toExponential(length);
