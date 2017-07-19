@@ -1,29 +1,4 @@
 ﻿module Shipwreck {
-	export enum SymbolPosition {
-		Parenthesis,
-		Left,
-		LeftWithSpace,
-		Right,
-		RightWithSpace,
-	}
-	export enum SymbolNegativePattern {
-		SignNumberSpaceSymbol,
-		SignNumberSymbol,
-		SignSymbolNumber,
-		SymbolSignNumber,
-		SymbolNumberSign,
-		NumberSignSymbol,
-		NumberSymbolSign,
-		SignSymbolSpaceNumber,
-		NumberSpaceSymbolSign,
-		SymbolSpaceNumberSign,
-		SymbolSpaceSignNumber,
-		NumberSignSpaceSymbol,
-		ParenthesizedLeft,
-		ParenthesizedLeftWithSpace,
-		ParenthesizedRight,
-		ParenthesizedRightWithSpace,
-	}
 	export class CultureInfo {
 		
 		private static _cache: { [name: string]: CultureInfo };
@@ -97,6 +72,31 @@
 			this.percentDecimalSeparator = percentDecimalSeparator;
 			this.percentGroupSeparator = percentGroupSeparator ;
 			this.percentGroupSizes = percentGroupSizes;
+		}
+		
+		public numberType() : INumberTypeInfo {
+			return {
+				decimalSeparator: this.numberDecimalSeparator,
+				decimalDigits: this.numberDecimalDigits,
+				groupSeparator: this.numberGroupSeparator,
+				groupSizes: this.numberGroupSizes
+			};
+		}
+		public percentType() : INumberTypeInfo {
+			return {
+				decimalSeparator: this.percentDecimalSeparator,
+				decimalDigits: this.percentDecimalDigits,
+				groupSeparator: this.percentGroupSeparator,
+				groupSizes: this.percentGroupSizes
+			};
+		}
+		public currencyType() : INumberTypeInfo {
+			return {
+				decimalSeparator: this.currencyDecimalSeparator,
+				decimalDigits: this.currencyDecimalDigits,
+				groupSeparator: this.currencyGroupSeparator,
+				groupSizes: this.currencyGroupSizes
+			};
 		}
 
 		public static get invariantCulture() : CultureInfo {
