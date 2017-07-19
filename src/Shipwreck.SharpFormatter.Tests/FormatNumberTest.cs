@@ -10,33 +10,24 @@ namespace Shipwreck.SharpFormatter.Tests
     [TestClass]
     public abstract class FormatNumberTest
     {
-        protected virtual PhantomJSDriver CreateWebDriver()
-        {
-            var d = new PhantomJSDriver();
-            d.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), "test.html").ToString());
-            return d;
-        }
-
-        private static PhantomJSDriver _Driver;
-        private static string _Html;
+        private static Dictionary<string, PhantomJSDriver> _Drivers = new Dictionary<string, PhantomJSDriver>();
 
         private void Test<T>(T value, string format)
             where T : struct, IFormattable, IConvertible
         {
-            if (_Driver == null || _Html != HtmlName)
+            PhantomJSDriver d;
+            if (!_Drivers.TryGetValue(HtmlName, out d))
             {
-                _Driver?.Dispose();
-
-                _Html = HtmlName;
-                _Driver = new PhantomJSDriver();
-                _Driver.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), _Html).ToString());
+                d = new PhantomJSDriver();
+                d.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), HtmlName).ToString());
+                _Drivers[HtmlName] = d;
             }
 
             var c = Culture;
             var exp = value.ToString(format, c);
             Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\" in {3}", value, format, exp, Culture.DisplayName);
             var v = value.ToDouble(null);
-            var s = _Driver.ExecuteScript(
+            var s = d.ExecuteScript(
                 string.Format("return Shipwreck.SharpFormatter.formatNumber({0}, '{1}', {2});"
                     , double.IsNaN(v) ? "NaN"
                         : double.IsPositiveInfinity(v) ? "Infinity"
@@ -54,15 +45,18 @@ namespace Shipwreck.SharpFormatter.Tests
 
         public virtual string CultureScript => $"Shipwreck.CultureInfo.getCulture('{CultureName}')";
 
-        [TestCleanup]
+        [AssemblyCleanup]
         public static void Cleanup()
         {
-            _Driver?.Dispose();
-            _Driver = null;
-        }
-
-        protected static void OnCleanup<T>()
-        {
+            foreach (var d in _Drivers.Values)
+            {
+                try
+                {
+                    d.Dispose();
+                }
+                finally { }
+            }
+            _Drivers.Clear();
         }
 
         #region Symbol
@@ -323,17 +317,7 @@ namespace Shipwreck.SharpFormatter.Tests
     [TestClass]
     public sealed class FormatNumberTest_NoCulture : FormatNumberTest
     {
-        [ClassCleanup]
-        public static void Cleanup() => OnCleanup<FormatNumberTest_NoCulture>();
-
         public override string HtmlName => "noculture.html";
-
-        protected override PhantomJSDriver CreateWebDriver()
-        {
-            var d = new PhantomJSDriver();
-            d.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), "noculture.html").ToString());
-            return d;
-        }
 
         public override string CultureName => string.Empty;
 
@@ -346,9 +330,6 @@ namespace Shipwreck.SharpFormatter.Tests
     [TestClass]
     public sealed class FormatNumberTest_InvariantCulture : FormatNumberTest
     {
-        [ClassCleanup]
-        public static void Cleanup() => OnCleanup<FormatNumberTest_InvariantCulture>();
-
         public override string CultureName => string.Empty;
 
         public override CultureInfo Culture => CultureInfo.InvariantCulture;
