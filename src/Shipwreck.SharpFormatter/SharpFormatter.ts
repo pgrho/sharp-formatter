@@ -1,4 +1,26 @@
 ﻿module Shipwreck {
+    const TOKEN_TYPE_LITERAL = -1;
+    const TOKEN_TYPE_ZERO = 0;
+    const TOKEN_TYPE_NUMBER = 1;
+    const TOKEN_TYPE_DOT = 2;
+    const TOKEN_TYPE_GROUP = 3;
+    const TOKEN_TYPE_PERCENT = 4;
+    const TOKEN_TYPE_PERMILL = 5;
+    const TOKEN_TYPE_EXPONENTIAL = 6;
+    interface IToken {
+        token: string;
+        type: number;
+    }
+    interface ISection {
+        tokens: IToken[];
+        dot: number;
+        exponential: boolean;
+        coefficient: number;
+        grouped: boolean;
+        integerDigits: number;
+        fractionDigits: number;
+        firstPlaceholder: number;
+    }
     export class SharpFormatter {
         private static _getCulture(culture: string | CultureInfo): CultureInfo {
             if (culture) {
@@ -128,12 +150,11 @@
                             return (c ? T._formatSymbolPattern(c.percentPositivePattern, r, ps) : null) || (r + ' ' + ps);
                         }
                 }
-            } else if (/^.$/) {
+            } else if (/^.$/.test(format)) {
                 throw "Invalid format";
             }
 
-            // custom:
-            throw "Not implemented";
+            return T._formatNumberCustom(value, format, c);
         }
         private static _padStart(value: string, length: number, padChar: string): string {
             if ((value as any).padStart) {
@@ -176,6 +197,284 @@
             }
             return r;
         }
+        private static _formatNumberCustom(value: number, format: string, c: CultureInfo): string {
+            var T = SharpFormatter;
+            var sections = T._parseNumberCustom(format);
+            if (sections.length === 1) {
+                return (value < 0 ? (c ? c.negativeSign : "-") : "") +
+                    T._formatNumberSection(Math.abs(value), sections[0], c);
+            } else if (sections.length === 2) {
+                return T._formatNumberSection(Math.abs(value), value < 0 ? sections[1] : sections[0], c);
+            } else {
+                var sec: ISection;
+                if (value > 0) {
+                    sec = sections[0];
+                } else if (value < 0) {
+                    sec = sections[1];
+                    if (sec.tokens.length == 0) {
+                        sec = sections[0];
+                    }
+                } else {
+                    sec = sections[2];
+                }
+                return T._formatNumberSection(Math.abs(value), sec, c);
+            }
+        }
+
+        private static _parseNumberCustom(format: string): ISection[] {
+            var sec: IToken[] = [];
+            var sections: IToken[][] = [sec];
+            var escaped = false;
+            var quote: string = null;
+            var buff = "";
+            var exp = false;
+            for (var i = 0; i < format.length; i++) {
+                var c = format.charAt(i);
+
+                if (escaped) {
+                    buff += c;
+                    escaped = false;
+                    continue;
+                } else if (quote) {
+                    if (c === '\\') {
+                        escaped = true;
+                    } else if (c === quote) {
+                        sec.push({ token: buff, type: TOKEN_TYPE_LITERAL });
+                        buff = "";
+                        quote = null;
+                    } else {
+                        buff += c;
+                    }
+                    continue;
+                } else if (exp) {
+                    if (c === '0') {
+                        sec.push({ token: buff + c, type: TOKEN_TYPE_EXPONENTIAL });
+                        buff = "";
+                        exp = false;
+                        continue;
+                    } else if (buff.length === 1 && (c === '+' || c === '-')) {
+                        buff += c;
+                        continue;
+                    } else {
+                        buff += c;
+                    }
+                }
+
+                switch (c) {
+                    case ';':
+                    case '\'':
+                    case '"':
+                    case 'E':
+                    case 'e':
+                    case '0':
+                    case '#':
+                    case '.':
+                    case ',':
+                    case '%':
+                    case '‰':
+                        if (buff) {
+                            sec.push({ token: buff, type: TOKEN_TYPE_LITERAL });
+                            buff = "";
+                        }
+                        break;
+                }
+
+                switch (c) {
+                    case ';':
+                        sec = [];
+                        sections.push(sec);
+                        break;
+                    case '\'':
+                    case '"':
+                        quote = c;
+                        break;
+                    case 'E':
+                    case 'e':
+                        buff = c;
+                        exp = true;
+                        continue;
+                    case '\\':
+                        escaped = true;
+                        break;
+                    case '0':
+                        sec.push({ token: c, type: TOKEN_TYPE_ZERO });
+                        break;
+                    case '#':
+                        sec.push({ token: c, type: TOKEN_TYPE_NUMBER });
+                        break;
+                    case '.':
+                        sec.push({ token: c, type: TOKEN_TYPE_DOT });
+                        break;
+                    case ',':
+                        sec.push({ token: c, type: TOKEN_TYPE_GROUP });
+                        break;
+                    case '%':
+                        sec.push({ token: c, type: TOKEN_TYPE_PERCENT });
+                        break;
+                    case '‰':
+                        sec.push({ token: c, type: TOKEN_TYPE_PERMILL });
+                        break;
+                    default:
+                        if (!exp) {
+                            buff += c;
+                        }
+                        break;
+                }
+                exp = false;
+            }
+            if (escaped) {
+                buff += '\\';
+            }
+            if (buff) {
+                sec.push({ token: buff, type: TOKEN_TYPE_LITERAL });
+            }
+
+            var r: ISection[] = [];
+
+            for (var sec of sections) {
+                var hasExp = false;
+                var dotPos = -1;
+                var grouped = false;
+                var coeff = 1;
+                var il = 0;
+                var fl = 0;
+                var fp = -1;
+                for (var i = 0; i < sec.length; i++) {
+                    var t = sec[i];
+                    switch (t.type) {
+                        case TOKEN_TYPE_ZERO:
+                        case TOKEN_TYPE_NUMBER:
+                            if (dotPos >= 0) {
+                                fl++;
+                            } else {
+                                il++;
+                            }
+                            if (fp < 0) {
+                                fp = i;
+                            }
+                            break;
+                        case TOKEN_TYPE_DOT:
+                            if (dotPos < 0) {
+                                dotPos = i;
+                            }
+                            break;
+                        case TOKEN_TYPE_GROUP:
+                            if (dotPos < 0) {
+                                var found = false;
+                                for (var j = i + 1; j < sec.length; j++) {
+                                    var ls = sec[j];
+                                    if (ls.type === TOKEN_TYPE_DOT) {
+                                        break;
+                                    } else if (ls.type === TOKEN_TYPE_ZERO || ls.type === TOKEN_TYPE_NUMBER) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (found) {
+                                    grouped = true;
+                                } else {
+                                    coeff *= 0.001;
+                                }
+                            } else {
+                                grouped = true;
+                            }
+                            break;
+                        case TOKEN_TYPE_PERCENT:
+                            coeff *= 100;
+                            break;
+                        case TOKEN_TYPE_PERMILL:
+                            coeff *= 1000;
+                            break;
+                        case TOKEN_TYPE_EXPONENTIAL:
+                            hasExp = true;
+                            break;
+                    }
+                }
+                r.push({
+                    tokens: sec,
+                    exponential: hasExp,
+                    coefficient: coeff,
+                    dot: dotPos,
+                    grouped: grouped,
+                    integerDigits: il,
+                    fractionDigits: fl,
+                    firstPlaceholder: fp
+                });
+            }
+
+            return r;
+        }
+
+        private static _formatNumberSection(value: number, sec: ISection, c: CultureInfo): string {
+            var v = value * sec.coefficient, exp = 0;
+
+            if (sec.exponential) {
+                exp = Math.floor(Math.log(v) / Math.LN10) - Math.max(sec.integerDigits - 1, 0);
+                v *= Math.pow(10, -exp);
+            }
+
+            var vs = v.toFixed(sec.fractionDigits);
+            var dp = vs.lastIndexOf('.');
+            if (dp < 0) {
+                if (vs === '0') {
+                    vs = '';
+                }
+                dp = vs.length;
+            } else {
+                vs = vs.replace(/\.?0*$/, '');
+            }
+            var r = "";
+
+            var ple = -sec.fractionDigits;
+
+            for (var i = sec.tokens.length - 1; i >= 0; i--) {
+                var t = sec.tokens[i];
+                switch (t.type) {
+                    case TOKEN_TYPE_ZERO:
+                    case TOKEN_TYPE_NUMBER:
+                        // vsから桁を拾う
+                        var j = dp - ple - (ple >= 0 ? 1 : 0);
+                        if (0 <= j && j < vs.length) {
+                            if (i === sec.firstPlaceholder) {
+                                r = vs.substring(0, j + 1) + r;
+                            } else {
+                                r = vs.charAt(j) + r;
+                            }
+                        } else if (t.type === TOKEN_TYPE_ZERO) {
+                            r = '0' + r;
+                        }
+                        ple++;
+                        break;
+                    case TOKEN_TYPE_LITERAL:
+                    case TOKEN_TYPE_PERMILL:
+                        r = t.token + r;
+                        break;
+                    case TOKEN_TYPE_DOT:
+                        if (i == sec.dot) {
+                            r = (c ? c.numberDecimalSeparator : '.') + r;
+                        }
+                        break;
+
+                    case TOKEN_TYPE_PERCENT:
+                        r = (c ? c.percentSymbol : '%') + r;
+                        break;
+
+                    case TOKEN_TYPE_EXPONENTIAL:
+                        r = t.token.charAt(0) +
+                            (exp >= 0 ? (t.token.charAt(1) === '+' ? (c ? c.positiveSign : '+') : '') : (c ? c.negativeSign : '-')) +
+                            Math.abs(exp) +
+                            r;
+                        break;
+
+                    case TOKEN_TYPE_GROUP:
+                    default:
+                        break;
+                }
+            }
+
+            return r;
+        }
+
         private static _formatSymbolPattern(pattern: SymbolPosition, r: string, ps: string): string {
             switch (pattern) {
                 case SymbolPosition.Parenthesis:

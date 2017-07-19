@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿//#define LOCALES
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium.PhantomJS;
 using System;
 using System.Globalization;
@@ -310,6 +312,72 @@ namespace Shipwreck.SharpFormatter.Tests
             => Test(0xfe56, "x8");
 
         #endregion X
+
+        #region Custom
+
+        [TestMethod]
+        public void FormatNumber_Custom1()
+            => Test(123, "00-00-00");
+
+        [TestMethod]
+        public void FormatNumber_Custom2()
+            => Test(123, "##-##-##");
+
+        [TestMethod]
+        public void FormatNumber_Custom3()
+            => Test(123, "##-##-#,#");
+
+        [TestMethod]
+        public void FormatNumber_Custom4()
+            => Test(123, "##-##-#,#,,");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Percent()
+            => Test(123, "##-##-#,#%");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Permill()
+            => Test(123, "##-##-#,#‰");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_1()
+            => Test(123, "##-##-#,#E0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_2()
+            => Test(123, "##-##-#,#E+0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_3()
+            => Test(123, "##-##-#,#E-0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_4()
+            => Test(123, "##-##-#,#e0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_5()
+            => Test(123, "##-##-#,#e+0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_6()
+            => Test(123, "##-##-#,#e-0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_7()
+            => Test(123, "0e9");
+        [TestMethod]
+        public void FormatNumber_Custom_Negative()
+            => Test(-123, "aaa0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_TwoDot()
+            => Test(-123, "0.0.0");
+        [TestMethod]
+        public void FormatNumber_Custom_Placeholer()
+            => Test(-1, "0#0");
+
+        #endregion Custom
     }
 
     #region Cultures
@@ -334,6 +402,8 @@ namespace Shipwreck.SharpFormatter.Tests
 
         public override CultureInfo Culture => CultureInfo.InvariantCulture;
     }
+
+#if LOCALES
 
     [TestClass]
     public sealed class CultureFormatNumberTest_Aa : FormatNumberTest
@@ -1216,6 +1286,8 @@ namespace Shipwreck.SharpFormatter.Tests
     {
         public override string CultureName => "zu";
     }
+
+#endif
 
     #endregion Cultures
 }
