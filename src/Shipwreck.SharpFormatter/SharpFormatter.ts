@@ -154,7 +154,7 @@
                 throw "Invalid format";
             }
 
-            return T._formatNumberCustom(value, format, c);
+            return T._formatNumberCustom(value, format, T._getCulture(culture));
         }
         private static _padStart(value: string, length: number, padChar: string): string {
             if ((value as any).padStart) {
@@ -441,13 +441,13 @@
             var sizes = sec.grouped ? (c ? c.numberGroupSizes : [3]) : null;
             var gs = sizes ? sizes[0] - 1 : NaN;
             var gi = 1;
+            var ld = -1;
 
             for (var i = sec.tokens.length - 1; i >= 0; i--) {
                 var t = sec.tokens[i];
                 switch (t.type) {
                     case TOKEN_TYPE_ZERO:
                     case TOKEN_TYPE_NUMBER:
-                        // vsから桁を拾う
                         var j = dp - ple - (ple >= 0 ? 1 : 0);
                         if (0 <= j && j < vs.length) {
                             if (i === sec.firstPlaceholder) {
@@ -476,8 +476,10 @@
                                     r = vs.charAt(j) + r;
                                 }
                             }
+                            ld = Math.max(ld, i);
                         } else if (t.type === TOKEN_TYPE_ZERO) {
                             r = '0' + r;
+                            ld = Math.max(ld, i);
                         }
                         ple++;
                         break;
@@ -486,7 +488,7 @@
                         r = t.token + r;
                         break;
                     case TOKEN_TYPE_DOT:
-                        if (i == sec.dot) {
+                        if (i === sec.dot && ld > -1) {
                             r = (c ? c.numberDecimalSeparator : '.') + r;
                         }
                         break;

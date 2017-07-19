@@ -1,4 +1,4 @@
-﻿//#define LOCALES
+﻿#define LOCALES
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium.PhantomJS;
@@ -346,9 +346,61 @@ namespace Shipwreck.SharpFormatter.Tests
 
         #endregion Decimal
 
+        #region Fraction
+
         [TestMethod]
-        public void FormatNumber_Custom2()
-            => Test(123, "##-##-##");
+        public void FormatNumber_Fraction_1()
+            => Test(123.4567, "#,0.###");
+
+        [TestMethod]
+        public void FormatNumber_Fraction_2()
+            => Test(123.456, "#,0.###");
+
+        [TestMethod]
+        public void FormatNumber_Fraction_3()
+            => Test(123.45, "#,0.###");
+
+        [TestMethod]
+        public void FormatNumber_Fraction_4()
+            => Test(120, "#,0.###");
+
+        [TestMethod]
+        public void FormatNumber_Fraction_Suffix()
+            => Test(120, "#,0.###a");
+
+        #endregion Fraction
+
+        #region Exponential
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_E0()
+            => Test(123, "0.##E0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_EP0()
+            => Test(123, "0.##E+0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_EM0()
+            => Test(0.000123, "0.##E-0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_e0()
+            => Test(123, "0.##e0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_eP0()
+            => Test(123, "0.##e+0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_eM0()
+            => Test(0.000123, "0.##e-0");
+
+        [TestMethod]
+        public void FormatNumber_Custom_Exponential_Negative()
+            => Test(-12345667, "000.0e0");
+
+        #endregion Exponential
 
         [TestMethod]
         public void FormatNumber_Custom3()
@@ -366,33 +418,6 @@ namespace Shipwreck.SharpFormatter.Tests
         public void FormatNumber_Custom_Permill()
             => Test(123, "##-##-#,#‰");
 
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_1()
-            => Test(123, "##-##-#,#E0");
-
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_2()
-            => Test(123, "##-##-#,#E+0");
-
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_3()
-            => Test(123, "##-##-#,#E-0");
-
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_4()
-            => Test(123, "##-##-#,#e0");
-
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_5()
-            => Test(123, "##-##-#,#e+0");
-
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_6()
-            => Test(123, "##-##-#,#e-0");
-
-        [TestMethod]
-        public void FormatNumber_Custom_Exponential_7()
-            => Test(123, "0e9");
         [TestMethod]
         public void FormatNumber_Custom_Negative()
             => Test(-123, "aaa0");
