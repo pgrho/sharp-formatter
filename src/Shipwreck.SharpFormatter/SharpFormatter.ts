@@ -27,6 +27,58 @@
         return value;
     }
 
+    function _formatSymbolPattern(pattern: SymbolPosition, r: string, ps: string): string {
+        switch (pattern) {
+            case SymbolPosition.Parenthesis:
+                return '(' + r + ')';
+            case SymbolPosition.Left:
+                return ps + r;
+            case SymbolPosition.LeftWithSpace:
+                return ps + ' ' + r;
+            case SymbolPosition.Right:
+                return r + ps;
+            case SymbolPosition.RightWithSpace:
+                return r + ' ' + ps;
+        }
+        return null;
+    }
+    function _formatSymbolNegativePattern(pattern: SymbolNegativePattern, value: string, negativeSign: string, symbol: string): string {
+        switch (pattern) {
+            case SymbolNegativePattern.SignNumberSpaceSymbol:
+                return negativeSign + value + ' ' + symbol;
+            case SymbolNegativePattern.SignNumberSymbol:
+                return negativeSign + value + symbol;
+            case SymbolNegativePattern.SignSymbolNumber:
+                return negativeSign + symbol + value;
+            case SymbolNegativePattern.SymbolSignNumber:
+                return symbol + negativeSign + value;
+            case SymbolNegativePattern.SymbolNumberSign:
+                return symbol + value + negativeSign;
+            case SymbolNegativePattern.NumberSignSymbol:
+                return value + negativeSign + symbol;
+            case SymbolNegativePattern.NumberSymbolSign:
+                return value + symbol + negativeSign;
+            case SymbolNegativePattern.SignSymbolSpaceNumber:
+                return negativeSign + symbol + ' ' + value;
+            case SymbolNegativePattern.NumberSpaceSymbolSign:
+                return value + ' ' + symbol + negativeSign;
+            case SymbolNegativePattern.SymbolSpaceNumberSign:
+                return symbol + ' ' + value + negativeSign;
+            case SymbolNegativePattern.SymbolSpaceSignNumber:
+                return symbol + ' ' + negativeSign + value;
+            case SymbolNegativePattern.NumberSignSpaceSymbol:
+                return value + negativeSign + ' ' + symbol;
+            case SymbolNegativePattern.ParenthesizedLeft:
+                return `(${symbol}${value})`;
+            case SymbolNegativePattern.ParenthesizedLeftWithSpace:
+                return `(${symbol} ${value})`;
+            case SymbolNegativePattern.ParenthesizedRight:
+                return `(${value}${symbol})`;
+            case SymbolNegativePattern.ParenthesizedRightWithSpace:
+                return `(${value} ${symbol})`;
+        }
+        return null;
+    }
     interface IToken {
         token: string;
         type: number;
@@ -256,9 +308,9 @@
                         var ps = c ? c.currencySymbol : '¤';
                         if (value < 0) {
                             var ns = c ? c.negativeSign : "-";
-                            return (c ? T._formatSymbolNegativePattern(c.currencyNegativePattern, r, ns, ps) : null) || `(${ps}${r})`;
+                            return (c ? _formatSymbolNegativePattern(c.currencyNegativePattern, r, ns, ps) : null) || `(${ps}${r})`;
                         } else {
-                            return (c ? T._formatSymbolPattern(c.currencyPositivePattern, r, ps) : null) || (ps + r);
+                            return (c ? _formatSymbolPattern(c.currencyPositivePattern, r, ps) : null) || (ps + r);
                         }
                     case 0x44: // 'D':
                     case 0x64: // 'd':
@@ -312,7 +364,7 @@
                             c ? c.numberGroupSizes : null);
                         if (value < 0) {
                             var ns = c ? c.negativeSign : "-";
-                            return (c ? T._formatSymbolPattern(c.numberNegativePattern, r, ps) : null) || (ns + r);
+                            return (c ? _formatSymbolPattern(c.numberNegativePattern, r, ps) : null) || (ns + r);
                         }
                         return r;
 
@@ -327,9 +379,9 @@
                         var ps = c ? c.percentSymbol : '%';
                         if (value < 0) {
                             var ns = c ? c.negativeSign : "-";
-                            return (c ? T._formatSymbolNegativePattern(c.percentNegativePattern, r, ns, ps) : null) || (ns + r + ' ' + ps);
+                            return (c ? _formatSymbolNegativePattern(c.percentNegativePattern, r, ns, ps) : null) || (ns + r + ' ' + ps);
                         } else {
-                            return (c ? T._formatSymbolPattern(c.percentPositivePattern, r, ps) : null) || (r + ' ' + ps);
+                            return (c ? _formatSymbolPattern(c.percentPositivePattern, r, ps) : null) || (r + ' ' + ps);
                         }
                 }
             } else if (/^.$/.test(format)) {
@@ -685,59 +737,6 @@
             }
 
             return r;
-        }
-
-        private static _formatSymbolPattern(pattern: SymbolPosition, r: string, ps: string): string {
-            switch (pattern) {
-                case SymbolPosition.Parenthesis:
-                    return '(' + r + ')';
-                case SymbolPosition.Left:
-                    return ps + r;
-                case SymbolPosition.LeftWithSpace:
-                    return ps + ' ' + r;
-                case SymbolPosition.Right:
-                    return r + ps;
-                case SymbolPosition.RightWithSpace:
-                    return r + ' ' + ps;
-            }
-            return null;
-        }
-        private static _formatSymbolNegativePattern(pattern: SymbolNegativePattern, value: string, negativeSign: string, symbol: string): string {
-            switch (pattern) {
-                case SymbolNegativePattern.SignNumberSpaceSymbol:
-                    return negativeSign + value + ' ' + symbol;
-                case SymbolNegativePattern.SignNumberSymbol:
-                    return negativeSign + value + symbol;
-                case SymbolNegativePattern.SignSymbolNumber:
-                    return negativeSign + symbol + value;
-                case SymbolNegativePattern.SymbolSignNumber:
-                    return symbol + negativeSign + value;
-                case SymbolNegativePattern.SymbolNumberSign:
-                    return symbol + value + negativeSign;
-                case SymbolNegativePattern.NumberSignSymbol:
-                    return value + negativeSign + symbol;
-                case SymbolNegativePattern.NumberSymbolSign:
-                    return value + symbol + negativeSign;
-                case SymbolNegativePattern.SignSymbolSpaceNumber:
-                    return negativeSign + symbol + ' ' + value;
-                case SymbolNegativePattern.NumberSpaceSymbolSign:
-                    return value + ' ' + symbol + negativeSign;
-                case SymbolNegativePattern.SymbolSpaceNumberSign:
-                    return symbol + ' ' + value + negativeSign;
-                case SymbolNegativePattern.SymbolSpaceSignNumber:
-                    return symbol + ' ' + negativeSign + value;
-                case SymbolNegativePattern.NumberSignSpaceSymbol:
-                    return value + negativeSign + ' ' + symbol;
-                case SymbolNegativePattern.ParenthesizedLeft:
-                    return `(${symbol}${value})`;
-                case SymbolNegativePattern.ParenthesizedLeftWithSpace:
-                    return `(${symbol} ${value})`;
-                case SymbolNegativePattern.ParenthesizedRight:
-                    return `(${value}${symbol})`;
-                case SymbolNegativePattern.ParenthesizedRightWithSpace:
-                    return `(${value} ${symbol})`;
-            }
-            return null;
         }
     }
 }
