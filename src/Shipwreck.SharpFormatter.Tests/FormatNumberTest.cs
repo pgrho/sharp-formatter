@@ -2,27 +2,34 @@
 using OpenQA.Selenium.PhantomJS;
 using System;
 using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Shipwreck.SharpFormatter.Tests
 {
     [TestClass]
     public abstract class FormatNumberTest
     {
-        private static PhantomJSDriver _Driver;
-
-        private PhantomJSDriver CreateWebDriver()
+        protected virtual PhantomJSDriver CreateWebDriver()
         {
             var d = new PhantomJSDriver();
             d.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), "test.html").ToString());
             return d;
         }
 
+        private static PhantomJSDriver _Driver;
+        private static string _Html;
+
         private void Test<T>(T value, string format)
             where T : struct, IFormattable, IConvertible
         {
-            if (_Driver == null)
+            if (_Driver == null || _Html != HtmlName)
             {
-                _Driver = CreateWebDriver();
+                _Driver?.Dispose();
+
+                _Html = HtmlName;
+                _Driver = new PhantomJSDriver();
+                _Driver.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), _Html).ToString());
             }
 
             var c = Culture;
@@ -39,17 +46,23 @@ namespace Shipwreck.SharpFormatter.Tests
             Assert.AreEqual(exp, s);
         }
 
+        public virtual string HtmlName => "test.html";
+
         public abstract string CultureName { get; }
 
         public virtual CultureInfo Culture => CultureInfo.GetCultureInfo(CultureName);
 
         public virtual string CultureScript => $"Shipwreck.CultureInfo.getCulture('{CultureName}')";
 
-        [ClassCleanup]
+        [TestCleanup]
         public static void Cleanup()
         {
-            _Driver?.Close();
+            _Driver?.Dispose();
             _Driver = null;
+        }
+
+        protected static void OnCleanup<T>()
+        {
         }
 
         #region Symbol
@@ -93,6 +106,10 @@ namespace Shipwreck.SharpFormatter.Tests
         [TestMethod]
         public void FormatNumber_C_7Digits()
             => Test(1234567, "c");
+
+        [TestMethod]
+        public void FormatNumber_C_Negative()
+            => Test(-1234, "c");
 
         #endregion C
 
@@ -304,8 +321,34 @@ namespace Shipwreck.SharpFormatter.Tests
     #region Cultures
 
     [TestClass]
+    public sealed class FormatNumberTest_NoCulture : FormatNumberTest
+    {
+        [ClassCleanup]
+        public static void Cleanup() => OnCleanup<FormatNumberTest_NoCulture>();
+
+        public override string HtmlName => "noculture.html";
+
+        protected override PhantomJSDriver CreateWebDriver()
+        {
+            var d = new PhantomJSDriver();
+            d.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), "noculture.html").ToString());
+            return d;
+        }
+
+        public override string CultureName => string.Empty;
+
+        public override CultureInfo Culture => CultureInfo.InvariantCulture;
+
+        public override string CultureScript
+            => "undefined";
+    }
+
+    [TestClass]
     public sealed class FormatNumberTest_InvariantCulture : FormatNumberTest
     {
+        [ClassCleanup]
+        public static void Cleanup() => OnCleanup<FormatNumberTest_InvariantCulture>();
+
         public override string CultureName => string.Empty;
 
         public override CultureInfo Culture => CultureInfo.InvariantCulture;

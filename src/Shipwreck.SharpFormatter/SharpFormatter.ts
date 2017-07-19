@@ -52,9 +52,9 @@
                         var ps = c ? c.currencySymbol : '¤';
                         if (value < 0) {
                             var ns = c ? c.negativeSign : "-";
-                            return (c ? T._formatSymbolNegativePattern(c.currencyNegativePattern, r, ns, ps) : null) || (ns + r + ' ' + ps);
+                            return (c ? T._formatSymbolNegativePattern(c.currencyNegativePattern, r, ns, ps) : null) || `(${ps}${r})`;
                         } else {
-                            return (c ? T._formatSymbolPattern(c.currencyPositivePattern, r, ps) : null) || (r + ' ' + ps);
+                            return (c ? T._formatSymbolPattern(c.currencyPositivePattern, r, ps) : null) || (ps + r);
                         }
                     case 0x44: // 'D':
                     case 0x64: // 'd':
@@ -159,7 +159,7 @@
             var dp = r.indexOf('.');
             if (dp < 0) {
                 dp = r.length;
-            } else if (decimalSeparator !== '.') {
+            } else if (decimalSeparator && decimalSeparator !== '.') {
                 r = r.substr(0, dp) + decimalSeparator + r.substring(dp + 1);
             }
             var size = groupSizes ? groupSizes[0] : 3;
