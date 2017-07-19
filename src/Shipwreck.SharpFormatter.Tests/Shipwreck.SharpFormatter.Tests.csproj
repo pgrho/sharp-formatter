@@ -57,6 +57,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="DriverHelper.cs" />
+    <Compile Include="FormatTest.cs" />
     <Compile Include="FormatNumberTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

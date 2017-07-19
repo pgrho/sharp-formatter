@@ -1,9 +1,7 @@
 ﻿#define LOCALES
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OpenQA.Selenium.PhantomJS;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 
 namespace Shipwreck.SharpFormatter.Tests
@@ -11,19 +9,10 @@ namespace Shipwreck.SharpFormatter.Tests
     [TestClass]
     public abstract class FormatNumberTest
     {
-        private static Dictionary<string, PhantomJSDriver> _Drivers = new Dictionary<string, PhantomJSDriver>();
-
         private void Test<T>(T value, string format)
             where T : struct, IFormattable, IConvertible
         {
-            PhantomJSDriver d;
-            if (!_Drivers.TryGetValue(HtmlName, out d))
-            {
-                d = new PhantomJSDriver();
-                d.Navigate().GoToUrl(new Uri(new Uri(GetType().Assembly.Location), HtmlName).ToString());
-                _Drivers[HtmlName] = d;
-            }
-
+            var d = DriverHelper.GetDriver(HtmlName);
             var c = Culture;
             var exp = value.ToString(format, c);
             Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\" in {3}", value, format, exp, Culture.DisplayName);
@@ -45,20 +34,6 @@ namespace Shipwreck.SharpFormatter.Tests
         public virtual CultureInfo Culture => CultureInfo.GetCultureInfo(CultureName);
 
         public virtual string CultureScript => $"Shipwreck.CultureInfo.getCulture('{CultureName}')";
-
-        [AssemblyCleanup]
-        public static void Cleanup()
-        {
-            foreach (var d in _Drivers.Values)
-            {
-                try
-                {
-                    d.Dispose();
-                }
-                finally { }
-            }
-            _Drivers.Clear();
-        }
 
         #region Symbol
 

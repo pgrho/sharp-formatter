@@ -9,6 +9,11 @@
     <input id="fnf" type="text" />
     <input id="fno" type="text" readonly="readonly" />
     <button type="button" onclick="document.getElementById('fno').value = Shipwreck.SharpFormatter.formatNumber(document.getElementById('fni').valueAsNumber, document.getElementById('fnf').value)">format</button>
+    <h2>format</h2>
+    <input id="ff" type="text" value="{0}" />
+   <input id="fi0" type="number" min="-999999999999999" max="999999999999999" step="0.000000001" />
+    <input id="fo" type="text" readonly="readonly" />
+    <button type="button" onclick="document.getElementById('fo').value = Shipwreck.SharpFormatter.format(document.getElementById('ff').value, [document.getElementById('fi0').valueAsNumber])">format</button>
     <script src="./CultureInfo.js"></script>
     <script src="./SharpFormatter.js"></script>
 </body>

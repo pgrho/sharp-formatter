@@ -21,6 +21,10 @@
         fractionDigits: number;
         firstPlaceholder: number;
     }
+    export interface IFormatter {
+        canFormat(obj: any): boolean;
+        format(obj: any, format: string, culture: CultureInfo): string;
+    }
     export class SharpFormatter {
         private static _getCulture(culture: string | CultureInfo): CultureInfo {
             if (culture) {
@@ -29,6 +33,163 @@
                 }
             }
             return Shipwreck.CultureInfo ? (culture !== null && culture !== undefined ? CultureInfo.getCulture(culture.toString()) : CultureInfo.currentCulture) : null;
+        }
+
+        private static _formatters: IFormatter[];
+
+        public static get formatters(): IFormatter[] {
+            return this._formatters || (this._formatters = [{
+                canFormat(obj) {
+                    return typeof (obj) === 'number';
+                },
+                format(obj: any, format: string, culture: CultureInfo) {
+                    return SharpFormatter.formatNumber(obj, format, culture);
+                }
+            }]);
+        }
+
+        public static format(format: string, args: any[], culture?: string | CultureInfo) {
+            var r = '';
+
+            const S_LITERAL = 0;
+            const S_OPENING = 1;
+            const S_INDEX = 2;
+            const S_ALIGNMENT = 3;
+            const S_FORMAT = 4;
+
+            var ci = SharpFormatter._getCulture(culture);
+
+            var s = S_LITERAL;
+            var index = 0;
+            var align = 0;
+            var alignSign = 1;
+            var valueFormat: string;
+
+            for (var i = 0; i < format.length; i++) {
+                var c = format.charAt(i);
+
+                switch (s) {
+                    case S_LITERAL:
+                        switch (c) {
+                            case '{':
+                                s = S_OPENING;
+                                index = 0;
+                                break;
+                            default:
+                                r += c;
+                                break;
+                        }
+                        break;
+                    case S_OPENING:
+                        switch (c) {
+                            case '{':
+                                r += '{';
+                                s = S_LITERAL;
+                                break;
+                            case '0':
+                            case '1':
+                            case '2':
+                            case '3':
+                            case '4':
+                            case '5':
+                            case '6':
+                            case '7':
+                            case '8':
+                            case '9':
+                                index = parseInt(c);
+                                align = 0;
+                                valueFormat = '';
+                                s = S_INDEX;
+                                break;
+                            default:
+                                throw "Invalid format";
+                        }
+                        break;
+                    case S_INDEX:
+                        switch (c) {
+                            case '0':
+                            case '1':
+                            case '2':
+                            case '3':
+                            case '4':
+                            case '5':
+                            case '6':
+                            case '7':
+                            case '8':
+                            case '9':
+                                index = index * 10 + parseInt(c);
+                                break;
+                            case ',':
+                                s = S_ALIGNMENT;
+                                align = 0;
+                                alignSign = 1;
+                                break;
+                            case ':':
+                                s = S_FORMAT;
+                                valueFormat = '';
+                                break;
+                            case '}':
+                                var v = args[index];
+                                var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
+                                r += formatter ? formatter.format(v, null, ci) : (v ? v.toString() : '');
+                                s = S_LITERAL;
+                                break;
+                            default:
+                                throw "Invalid format";
+                        }
+                        break;
+                    case S_ALIGNMENT:
+                        switch (c) {
+                            case '+':
+                                alignSign = 1;
+                                break;
+                            case '-':
+                                alignSign = -1;
+                                break;
+                            case '0':
+                            case '1':
+                            case '2':
+                            case '3':
+                            case '4':
+                            case '5':
+                            case '6':
+                            case '7':
+                            case '8':
+                            case '9':
+                                align = 10 * align + parseInt(c);
+                                break;
+                            case ':':
+                                s = S_FORMAT;
+                                valueFormat = '';
+                                break;
+                            case '}':
+                                var v = args[index];
+                                var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
+                                var vs = formatter ? formatter.format(v, null, ci) : (v ? v.toString() : '');
+                                r += alignSign > 0 ? SharpFormatter._padStart(vs, align, ' ') : SharpFormatter._padEnd(vs, align, ' ');
+                                s = S_LITERAL;
+                                break;
+                            default:
+                                throw "Invalid format";
+                        }
+                        break;
+                    case S_FORMAT:
+                        if (c === '}') {
+                            var v = args[index];
+                            var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
+                            var vs = formatter ? formatter.format(v, valueFormat, ci) : (v ? v.toString() : '');
+                            if (align > 0) {
+                                vs = alignSign > 0 ? SharpFormatter._padStart(vs, align, ' ') : SharpFormatter._padEnd(vs, align, ' ');
+                            }
+                            r += vs;
+                            s = S_LITERAL;
+                        } else {
+                            valueFormat += c;
+                        }
+                        break;
+                }
+            }
+            return r;
         }
 
         public static formatNumber(value: number, format: string, culture?: string | CultureInfo) {
@@ -162,6 +323,15 @@
             }
             while (value.length < length) {
                 value = padChar + value;
+            }
+            return value;
+        }
+        private static _padEnd(value: string, length: number, padChar: string): string {
+            if ((value as any).padEnd) {
+                return (value as any).padEnd(length, padChar);
+            }
+            while (value.length < length) {
+                value += padChar;
             }
             return value;
         }
