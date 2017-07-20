@@ -68,6 +68,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="tsconfig.json" />
+    <Content Include="Shipwreck.SharpFormatter.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="SharpFormatter.js">

@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Shipwreck.SharpFormatter</id>
+    <version>0.0.1</version>
+    <description>TypeScript implementation for .NET-style value formatter.</description>
+    <authors>pgrho</authors>
+    <projectUrl>https://github.com/pgrho/sharp-formatter</projectUrl>
+  </metadata>
+  <files>
+    <file src="SharpFormatter.ts" target="content\Scripts" />
+    <file src="SharpFormatter.js" target="content\Scripts" />
+    <file src="SharpFormatter.js.map" target="content\Scripts" />
+    <file src="SharpFormatter.min.js" target="content\Scripts" />
+    <file src="CultureInfo.ts" target="content\Scripts" />
+    <file src="CultureInfo.js" target="content\Scripts" />
+    <file src="CultureInfo.js.map" target="content\Scripts" />
+    <file src="CultureInfo.min.js" target="content\Scripts" />
+  </files>
+</package>
