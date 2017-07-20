@@ -251,7 +251,7 @@ module Shipwreck {
     }
 
     // #region formatNumber
-    const enum TokenType {
+    const enum NumberFormatTokenType {
         Literal,
         Zero,
         Number,
@@ -262,12 +262,12 @@ module Shipwreck {
         Exponential
     }
 
-    interface IToken {
+    interface INumberFormatToken {
         token: string;
-        type: TokenType;
+        type: NumberFormatTokenType;
     }
-    interface ISection {
-        tokens: IToken[];
+    interface INumberFormatSection {
+        tokens: INumberFormatToken[];
         dot: number;
         exponential: boolean;
         coefficient: number;
@@ -529,7 +529,7 @@ module Shipwreck {
         } else if (sections.length === 2) {
             return _formatSection(c, Math.abs(value), value < 0 ? sections[1] : sections[0]);
         } else {
-            var sec: ISection;
+            var sec: INumberFormatSection;
             if (value > 0) {
                 sec = sections[0];
             } else if (value < 0) {
@@ -544,9 +544,9 @@ module Shipwreck {
         }
     }
 
-    function _parseCustom(format: string): ISection[] {
-        var sec: IToken[] = [];
-        var sections: IToken[][] = [sec];
+    function _parseCustom(format: string): INumberFormatSection[] {
+        var sec: INumberFormatToken[] = [];
+        var sections: INumberFormatToken[][] = [sec];
         var escaped = false;
         var quote: string = null;
         var buff = "";
@@ -562,7 +562,7 @@ module Shipwreck {
                 if (c === '\\') {
                     escaped = true;
                 } else if (c === quote) {
-                    sec.push({ token: buff, type: TokenType.Literal });
+                    sec.push({ token: buff, type: NumberFormatTokenType.Literal });
                     buff = "";
                     quote = null;
                 } else {
@@ -571,7 +571,7 @@ module Shipwreck {
                 continue;
             } else if (exp) {
                 if (c === '0') {
-                    sec.push({ token: buff + c, type: TokenType.Exponential });
+                    sec.push({ token: buff + c, type: NumberFormatTokenType.Exponential });
                     buff = "";
                     exp = false;
                     continue;
@@ -596,7 +596,7 @@ module Shipwreck {
                 case '%':
                 case '‰':
                     if (buff) {
-                        sec.push({ token: buff, type: TokenType.Literal });
+                        sec.push({ token: buff, type: NumberFormatTokenType.Literal });
                         buff = "";
                     }
                     break;
@@ -620,22 +620,22 @@ module Shipwreck {
                     escaped = true;
                     break;
                 case '0':
-                    sec.push({ token: c, type: TokenType.Zero });
+                    sec.push({ token: c, type: NumberFormatTokenType.Zero });
                     break;
                 case '#':
-                    sec.push({ token: c, type: TokenType.Number });
+                    sec.push({ token: c, type: NumberFormatTokenType.Number });
                     break;
                 case '.':
-                    sec.push({ token: c, type: TokenType.Dot });
+                    sec.push({ token: c, type: NumberFormatTokenType.Dot });
                     break;
                 case ',':
-                    sec.push({ token: c, type: TokenType.Comma });
+                    sec.push({ token: c, type: NumberFormatTokenType.Comma });
                     break;
                 case '%':
-                    sec.push({ token: c, type: TokenType.Percent });
+                    sec.push({ token: c, type: NumberFormatTokenType.Percent });
                     break;
                 case '‰':
-                    sec.push({ token: c, type: TokenType.Permill });
+                    sec.push({ token: c, type: NumberFormatTokenType.Permill });
                     break;
                 default:
                     if (!exp) {
@@ -649,10 +649,10 @@ module Shipwreck {
             buff += '\\';
         }
         if (buff) {
-            sec.push({ token: buff, type: TokenType.Literal });
+            sec.push({ token: buff, type: NumberFormatTokenType.Literal });
         }
 
-        var r: ISection[] = [];
+        var r: INumberFormatSection[] = [];
 
         for (var sec of sections) {
             var hasExp = false;
@@ -667,12 +667,12 @@ module Shipwreck {
             for (var i = 0; i < sec.length; i++) {
                 var t = sec[i];
                 switch (t.type) {
-                    case TokenType.Zero:
+                    case NumberFormatTokenType.Zero:
                         if (fz < 0) {
                             fz = i;
                         }
                         lz = i;
-                    case TokenType.Number:
+                    case NumberFormatTokenType.Number:
                         if (dotPos >= 0) {
                             fl++;
                         } else {
@@ -682,19 +682,19 @@ module Shipwreck {
                             fp = i;
                         }
                         break;
-                    case TokenType.Dot:
+                    case NumberFormatTokenType.Dot:
                         if (dotPos < 0) {
                             dotPos = i;
                         }
                         break;
-                    case TokenType.Comma:
+                    case NumberFormatTokenType.Comma:
                         if (dotPos < 0) {
                             var found = false;
                             for (var j = i + 1; j < sec.length; j++) {
                                 var ls = sec[j];
-                                if (ls.type === TokenType.Dot) {
+                                if (ls.type === NumberFormatTokenType.Dot) {
                                     break;
-                                } else if (ls.type === TokenType.Zero || ls.type === TokenType.Number) {
+                                } else if (ls.type === NumberFormatTokenType.Zero || ls.type === NumberFormatTokenType.Number) {
                                     found = true;
                                     break;
                                 }
@@ -708,21 +708,21 @@ module Shipwreck {
                             grouped = true;
                         }
                         break;
-                    case TokenType.Percent:
+                    case NumberFormatTokenType.Percent:
                         coeff *= 100;
                         break;
-                    case TokenType.Permill:
+                    case NumberFormatTokenType.Permill:
                         coeff *= 1000;
                         break;
-                    case TokenType.Exponential:
+                    case NumberFormatTokenType.Exponential:
                         hasExp = true;
                         break;
                 }
             }
             for (var i = fz + 1; i < lz; i++) {
                 var t = sec[i];
-                if (t.type === TokenType.Number) {
-                    t.type = TokenType.Zero;
+                if (t.type === NumberFormatTokenType.Number) {
+                    t.type = NumberFormatTokenType.Zero;
                 }
             }
             r.push({
@@ -740,7 +740,7 @@ module Shipwreck {
         return r;
     }
 
-    function _formatSection(c: CultureInfo, value: number, sec: ISection): string {
+    function _formatSection(c: CultureInfo, value: number, sec: INumberFormatSection): string {
         var v = value * sec.coefficient, exp = 0;
 
         if (sec.exponential) {
@@ -770,8 +770,8 @@ module Shipwreck {
         for (var i = sec.tokens.length - 1; i >= 0; i--) {
             var t = sec.tokens[i];
             switch (t.type) {
-                case TokenType.Zero:
-                case TokenType.Number:
+                case NumberFormatTokenType.Zero:
+                case NumberFormatTokenType.Number:
                     var j = dp - ple - (ple >= 0 ? 1 : 0);
                     if (0 <= j && j < vs.length) {
                         if (i === sec.firstPlaceholder) {
@@ -793,7 +793,7 @@ module Shipwreck {
                             var prev = sec.tokens[i - 1];
                             if (sec.grouped
                                 && gs === ple
-                                && (prev.type === TokenType.Zero || (prev.type === TokenType.Number && j > 0))) {
+                                && (prev.type === NumberFormatTokenType.Zero || (prev.type === NumberFormatTokenType.Number && j > 0))) {
                                 r = nt.groupSeparator + vs.charAt(j) + r;
                                 gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
                             } else {
@@ -801,34 +801,34 @@ module Shipwreck {
                             }
                         }
                         ld = Math.max(ld, i);
-                    } else if (t.type === TokenType.Zero) {
+                    } else if (t.type === NumberFormatTokenType.Zero) {
                         r = '0' + r;
                         ld = Math.max(ld, i);
                     }
                     ple++;
                     break;
-                case TokenType.Literal:
-                case TokenType.Permill:
+                case NumberFormatTokenType.Literal:
+                case NumberFormatTokenType.Permill:
                     r = t.token + r;
                     break;
-                case TokenType.Dot:
+                case NumberFormatTokenType.Dot:
                     if (i === sec.dot && ld > -1) {
                         r = nt.decimalSeparator + r;
                     }
                     break;
 
-                case TokenType.Percent:
+                case NumberFormatTokenType.Percent:
                     r = _percentSymbol(c) + r;
                     break;
 
-                case TokenType.Exponential:
+                case NumberFormatTokenType.Exponential:
                     r = t.token.charAt(0) +
                         (exp >= 0 ? (t.token.charAt(1) === '+' ? _positiveSign(c) : '') : _negativeSign(c)) +
                         Math.abs(exp) +
                         r;
                     break;
 
-                case TokenType.Comma:
+                case NumberFormatTokenType.Comma:
                 default:
                     break;
             }
