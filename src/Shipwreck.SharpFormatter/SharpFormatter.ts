@@ -966,58 +966,63 @@ module Shipwreck {
     function _formatDate(date: Date, format: string) {
         var f = format || 'G';
         var utc = false;
-        switch (f) {
-            case 'O':
-            case 'o':
-                f = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz";
-                break;
-            case "R":
-            case "r": // RFC1123Pattern
-                f = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
-                break;
-            case "s": // SortableDateTimePattern
-                f = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
-                break;
-            case "u": //UniversalSortableDateTimePattern
-                f = "yyyy'-'MM'-'dd HH':'mm':'ss'Z'";
-                utc = true;
-                break;
-            case "d": //ShortDatePattern
-                f = "dd/MM/yyyy";
-                break;
-            case "D": //LongDatePattern
-                f = "dddd, dd MMMM yyyy";
-                break;
-            case "f": //LongDatePattern + ShortTimePattern
-                f = "dddd, dd MMMM yyyy HH:mm";
-                break;
-            case "F": //FullDateTimePattern
-                f = "dddd, dd MMMM yyyy HH:mm:ss";
-                break;
-            case "g": //ShortDatePattern + ShortTimePattern
-                f = "dd/MM/yyyy HH:mm";
-                break;
-            case "G": //LongDatePattern + LongTimePattern
-                f = "dddd, dd MMMM yyyy HH:mm:ss";
-                break;
-            case "M":
-            case "m": // MonthDayPattern
-                f = "MMMM dd";
-                break;
-            case "t": // ShortTimePattern
-                f = "HH:mm";
-                break;
-            case "T": // LongTimePattern
-                f = "HH:mm:ss";
-                break;
-            case "U": //FullDateTimePattern
-                f = "dddd, dd MMMM yyyy HH:mm:ss";
-                utc = true;
-                break;
-            case "Y":
-            case "y": // YearMonthPattern
-                f = "yyyy MMMM";
-                break;
+        if (f.length === 1) {
+            switch (f) {
+                case "s": // SortableDateTimePattern
+                    f = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
+                    break;
+                case "d": //ShortDatePattern
+                    f = "MM/dd/yyyy";
+                    break;
+                case "D": //LongDatePattern
+                    f = "dddd, dd MMMM yyyy";
+                    break;
+                case "f": //LongDatePattern + ShortTimePattern
+                    f = "dddd, dd MMMM yyyy HH:mm";
+                    break;
+                case "F": //FullDateTimePattern
+                    f = "dddd, dd MMMM yyyy HH:mm:ss";
+                    break;
+                case "g": //ShortDatePattern + ShortTimePattern
+                    f = "MM/dd/yyyy HH:mm";
+                    break;
+                case "G": //ShortDatePattern + LongTimePattern
+                    f = "MM/dd/yyyy HH:mm:ss";
+                    break;
+                case "M":
+                case "m": // MonthDayPattern
+                    f = "MMMM dd";
+                    break;
+                case 'O':
+                case 'o':
+                    f = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz";
+                    break;
+                case "R":
+                case "r": // RFC1123Pattern
+                    f = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
+                    utc = true;
+                    break;
+                case "t": // ShortTimePattern
+                    f = "HH:mm";
+                    break;
+                case "T": // LongTimePattern
+                    f = "HH:mm:ss";
+                    break;
+                case "u": //UniversalSortableDateTimePattern
+                    f = "yyyy'-'MM'-'dd HH':'mm':'ss'Z'";
+                    utc = true;
+                    break;
+                case "U": //FullDateTimePattern
+                    f = "dddd, dd MMMM yyyy HH:mm:ss";
+                    utc = true;
+                    break;
+                case "Y":
+                case "y": // YearMonthPattern
+                    f = "yyyy MMMM";
+                    break;
+                default:
+                    throw "Invalid format";
+            }
         }
         var tokens = _parseDateFormat(f);
         var r = '';
@@ -1037,7 +1042,7 @@ module Shipwreck {
                     switch (t.token) {
                         case "d":
                         case "dd":
-                            r += _padStart((utc ? date.getUTCDate() : date.getDate()).toString(), tl, '-');
+                            r += _padStart((utc ? date.getUTCDate() : date.getDate()).toString(), tl, '0');
                             continue;
                         case "ddd": // AbbreviatedDayNames
                             var v = utc ? date.getUTCDay() : date.getDay();
@@ -1112,7 +1117,7 @@ module Shipwreck {
                             continue;
                         case "s":
                         case "ss":
-                            r += _padStart(((utc ? date.getUTCSeconds() : date.getSeconds()) + 1).toString(), tl, '0');
+                            r += _padStart((utc ? date.getUTCSeconds() : date.getSeconds()).toString(), tl, '0');
                             continue;
                         case "t":
                             var v = utc ? date.getUTCHours() : date.getHours();
@@ -1130,7 +1135,8 @@ module Shipwreck {
                         case "z":
                         case "zz":
                             var v = date.getTimezoneOffset();
-                            r += (v >= 0 ? '+' : '-') + _padStart(Math.floor(Math.abs(v / 60)).toString(), tl, '0');
+                            var v2 = Math.abs(v) % 60;
+                            r += (v >= 0 ? '+' : '-') + _padStart(Math.floor(Math.abs(v / 60)).toString(), tl, '0') + (v2 > 0 ? ":" + _padStart(v2.toString(), 2, '0') : "");
                             continue;
                     }
                     break;
@@ -1145,9 +1151,14 @@ module Shipwreck {
         var tokens: IDateFormatToken[] = [];
         var escaped = false;
         var prev: IDateFormatToken;
+        var quote: string = null;
         for (var i = 0; i < format.length; i++) {
             var c = format.charAt(i);
+            if (quote) {
+                if (escaped) {
 
+                }
+            }
             if (escaped) {
                 if (!prev || prev.type !== DateFormatTokenType.Literal) {
                     prev = {
@@ -1159,6 +1170,22 @@ module Shipwreck {
                     prev.token += c;
                 }
                 escaped = false;
+            } else if (quote) {
+                if (c === quote) {
+                    quote = null;
+                } else if (c === '\\') {
+                    escaped = true;
+                } else {
+                    if (!prev || prev.type !== DateFormatTokenType.Literal) {
+                        prev = {
+                            token: c,
+                            type: DateFormatTokenType.Literal
+                        };
+                        tokens.push(prev);
+                    } else {
+                        prev.token += c;
+                    }
+                }
             } else {
                 switch (c) {
                     case 'd':
@@ -1204,6 +1231,11 @@ module Shipwreck {
                     case '\\':
                         prev = null;
                         escaped = true;
+                        break;
+                    case '\'':
+                    case '"':
+                        prev = null;
+                        quote = c;
                         break;
                     default:
                         if (!prev || prev.type !== DateFormatTokenType.Literal) {
