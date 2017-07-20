@@ -73,65 +73,9 @@ module Shipwreck {
         return null;
     }
 
-    const enum TokenType {
-        Literal,
-        Zero,
-        Number,
-        Dot,
-        Comma,
-        Percent,
-        Permill,
-        Exponential
-    }
-
-    interface IToken {
-        token: string;
-        type: TokenType;
-    }
-    interface ISection {
-        tokens: IToken[];
-        dot: number;
-        exponential: boolean;
-        coefficient: number;
-        grouped: boolean;
-        integerDigits: number;
-        fractionDigits: number;
-        firstPlaceholder: number;
-    }
     export interface IFormatter {
         canFormat(obj: any): boolean;
         format(obj: any, format: string, culture: CultureInfo): string;
-    }
-    export interface INumberTypeInfo {
-        decimalSeparator: string;
-        decimalDigits: number;
-        groupSeparator: string;
-        groupSizes: number[];
-    }
-    export enum SymbolPosition {
-        Parenthesis,
-        Left,
-        LeftWithSpace,
-        Right,
-        RightWithSpace,
-    }
-    export enum SymbolNegativePattern {
-        SignNumberSpaceSymbol,
-        SignNumberSymbol,
-        SignSymbolNumber,
-        SymbolSignNumber,
-        SymbolNumberSign,
-        NumberSignSymbol,
-        NumberSymbolSign,
-        SignSymbolSpaceNumber,
-        NumberSpaceSymbolSign,
-        SymbolSpaceNumberSign,
-        SymbolSpaceSignNumber,
-        NumberSignSpaceSymbol,
-        ParenthesizedLeft,
-        ParenthesizedLeftWithSpace,
-        ParenthesizedRight,
-        ParenthesizedRightWithSpace,
     }
     const enum FormatState {
         Literal,
@@ -307,6 +251,62 @@ module Shipwreck {
     }
 
     // #region formatNumber
+    const enum TokenType {
+        Literal,
+        Zero,
+        Number,
+        Dot,
+        Comma,
+        Percent,
+        Permill,
+        Exponential
+    }
+
+    interface IToken {
+        token: string;
+        type: TokenType;
+    }
+    interface ISection {
+        tokens: IToken[];
+        dot: number;
+        exponential: boolean;
+        coefficient: number;
+        grouped: boolean;
+        integerDigits: number;
+        fractionDigits: number;
+        firstPlaceholder: number;
+    }
+    export interface INumberTypeInfo {
+        decimalSeparator: string;
+        decimalDigits: number;
+        groupSeparator: string;
+        groupSizes: number[];
+    }
+    export enum SymbolPosition {
+        Parenthesis,
+        Left,
+        LeftWithSpace,
+        Right,
+        RightWithSpace,
+    }
+    export enum SymbolNegativePattern {
+        SignNumberSpaceSymbol,
+        SignNumberSymbol,
+        SignSymbolNumber,
+        SymbolSignNumber,
+        SymbolNumberSign,
+        NumberSignSymbol,
+        NumberSymbolSign,
+        SignSymbolSpaceNumber,
+        NumberSpaceSymbolSign,
+        SymbolSpaceNumberSign,
+        SymbolSpaceSignNumber,
+        NumberSignSpaceSymbol,
+        ParenthesizedLeft,
+        ParenthesizedLeftWithSpace,
+        ParenthesizedRight,
+        ParenthesizedRightWithSpace,
+    }
 
     // #region CultureInfo
 
