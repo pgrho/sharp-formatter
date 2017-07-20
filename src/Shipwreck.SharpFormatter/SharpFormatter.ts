@@ -104,6 +104,14 @@ module Shipwreck {
                 format(obj: any, format: string, culture: CultureInfo) {
                     return SharpFormatter.formatNumber(obj, format, culture);
                 }
+            },
+            {
+                canFormat(obj) {
+                    return obj instanceof Date;
+                },
+                format(obj: any, format: string, culture: CultureInfo) {
+                    return SharpFormatter.formatDate(obj, format, culture);
+                }
             }]);
         }
 
@@ -247,6 +255,9 @@ module Shipwreck {
 
         public static formatNumber(value: number, format: string, culture?: string | CultureInfo) {
             return _format(SharpFormatter._getCulture(culture), value, format);
+        }
+        public static formatDate(value: Date, format: string, culture?: string | CultureInfo) {
+            return _formatDate(value, format);
         }
     }
 
@@ -840,4 +851,377 @@ module Shipwreck {
     // #endregion
 
     // #endregion formatNumber
+
+    // #region formatDate
+
+    const enum DateFormatTokenType {
+        Literal,
+        Value,
+        DateSeparator,
+        TimeSeparator
+    }
+
+    interface IDateFormatToken {
+        token: string;
+        type: DateFormatTokenType;
+    }
+
+    function getAbbreviatedDayName(d: number) {
+        switch (d) {
+            case 0:
+                return "Sun";
+            case 1:
+                return "Mon";
+            case 2:
+                return "Tue";
+            case 3:
+                return "Wed";
+            case 4:
+                return "Thu";
+            case 5:
+                return "Fri";
+            case 6:
+                return "Sat";
+        }
+        throw "Invalid day " + d;
+    }
+    function getDayName(d: number) {
+        switch (d) {
+            case 0:
+                return "Sunday";
+            case 1:
+                return "Monday";
+            case 2:
+                return "Tuesday";
+            case 3:
+                return "Wednesday";
+            case 4:
+                return "Thursday";
+            case 5:
+                return "Friday";
+            case 6:
+                return "Saturday";
+        }
+        throw "Invalid day " + d;
+    }
+    function getAbbreviatedMonthName(d: number) {
+        switch (d) {
+            case 0:
+                return "Jan";
+            case 1:
+                return "Feb";
+            case 2:
+                return "Mar";
+            case 3:
+                return "Apr";
+            case 4:
+                return "May";
+            case 5:
+                return "Jun";
+            case 6:
+                return "Jul";
+            case 7:
+                return "Aug";
+            case 8:
+                return "Sep";
+            case 9:
+                return "Oct";
+            case 10:
+                return "Nov";
+            case 11:
+                return "Dec";
+        }
+        throw "Invalid month " + d;
+    }
+    function getMonthName(d: number) {
+        switch (d) {
+            case 0:
+                return "January";
+            case 1:
+                return "February";
+            case 2:
+                return "March";
+            case 3:
+                return "April";
+            case 4:
+                return "May";
+            case 5:
+                return "June";
+            case 6:
+                return "July";
+            case 7:
+                return "August";
+            case 8:
+                return "September";
+            case 9:
+                return "October";
+            case 10:
+                return "November";
+            case 11:
+                return "December";
+        }
+        throw "Invalid month " + d;
+    }
+
+    function _formatDate(date: Date, format: string) {
+        var f = format || 'G';
+        var utc = false;
+        switch (f) {
+            case 'O':
+            case 'o':
+                f = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz";
+                break;
+            case "R":
+            case "r": // RFC1123Pattern
+                f = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
+                break;
+            case "s": // SortableDateTimePattern
+                f = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
+                break;
+            case "u": //UniversalSortableDateTimePattern
+                f = "yyyy'-'MM'-'dd HH':'mm':'ss'Z'";
+                utc = true;
+                break;
+            case "d": //ShortDatePattern
+                f = "dd/MM/yyyy";
+                break;
+            case "D": //LongDatePattern
+                f = "dddd, dd MMMM yyyy";
+                break;
+            case "f": //LongDatePattern + ShortTimePattern
+                f = "dddd, dd MMMM yyyy HH:mm";
+                break;
+            case "F": //FullDateTimePattern
+                f = "dddd, dd MMMM yyyy HH:mm:ss";
+                break;
+            case "g": //ShortDatePattern + ShortTimePattern
+                f = "dd/MM/yyyy HH:mm";
+                break;
+            case "G": //LongDatePattern + LongTimePattern
+                f = "dddd, dd MMMM yyyy HH:mm:ss";
+                break;
+            case "M":
+            case "m": // MonthDayPattern
+                f = "MMMM dd";
+                break;
+            case "t": // ShortTimePattern
+                f = "HH:mm";
+                break;
+            case "T": // LongTimePattern
+                f = "HH:mm:ss";
+                break;
+            case "U": //FullDateTimePattern
+                f = "dddd, dd MMMM yyyy HH:mm:ss";
+                utc = true;
+                break;
+            case "Y":
+            case "y": // YearMonthPattern
+                f = "yyyy MMMM";
+                break;
+        }
+        var tokens = _parseDateFormat(f);
+        var r = '';
+        for (var t of tokens) {
+            var tl = t.token.length;
+            switch (t.type) {
+                case DateFormatTokenType.Literal:
+                    r += t.token;
+                    continue;
+                case DateFormatTokenType.DateSeparator:
+                    r += '/';
+                    continue;
+                case DateFormatTokenType.TimeSeparator:
+                    r += ':';
+                    continue;
+                case DateFormatTokenType.Value:
+                    switch (t.token) {
+                        case "d":
+                        case "dd":
+                            r += _padStart((utc ? date.getUTCDate() : date.getDate()).toString(), tl, '-');
+                            continue;
+                        case "ddd": // AbbreviatedDayNames
+                            var v = utc ? date.getUTCDay() : date.getDay();
+                            r += getAbbreviatedDayName(v);
+                            continue;
+                        case "dddd": // DayNames
+                            var v = utc ? date.getUTCDay() : date.getDay();
+                            r += getDayName(v);
+                            continue;
+                        case "f":
+                        case "ff":
+                        case "fff":
+                        case "ffff":
+                        case "fffff":
+                        case "ffffff":
+                        case "fffffff":
+                            var v = utc ? date.getUTCMilliseconds() : date.getMilliseconds();
+                            r += (v * 10000 + 10000000).toString().substr(1, tl);
+                            continue;
+                        case "F":
+                        case "FF":
+                        case "FFF":
+                        case "FFFF":
+                        case "FFFFF":
+                        case "FFFFFF":
+                        case "FFFFFFF":
+                            var v = utc ? date.getUTCMilliseconds() : date.getMilliseconds();
+                            if (v === 0) {
+                                r = r.replace(/\.$/, '');
+                            } else {
+                                r += (v * 10000 + 10000000).toString().substr(1, tl).replace(/0+$/, '');
+                            }
+                            continue;
+                        case "g":
+                        case "gg":
+                            r += 'A.D.';
+                            continue;
+                        case "h":
+                        case "hh":
+                            r += _padStart((((utc ? date.getUTCHours() : date.getHours()) + 11) % 12 + 1).toString(), tl, '0');
+                            continue;
+                        case "H":
+                        case "HH":
+                            r += _padStart((utc ? date.getUTCHours() : date.getHours()).toString(), tl, '0');
+                            continue;
+                        case "K":
+                        case "zzz":
+                            var v = date.getTimezoneOffset();
+                            if (v === 0 && t.token !== "zzz") {
+                                r += 'Z';
+                            } else {
+                                r += (v > 0 ? '+' : '-') +
+                                    _padStart(Math.floor(Math.abs(v) / 60).toString(), 2, '0') +
+                                    _padStart((Math.abs(v) % 60).toString(), 2, '0');
+                            }
+                            continue;
+                        case "m":
+                        case "mm":
+                            r += _padStart((utc ? date.getUTCMinutes() : date.getMinutes()).toString(), tl, '0');
+                            continue;
+                        case "M":
+                        case "MM":
+                            r += _padStart(((utc ? date.getUTCMonth() : date.getMonth()) + 1).toString(), tl, '0');
+                            continue;
+                        case "MMM":
+                            var v = utc ? date.getUTCMonth() : date.getMonth();
+                            r += getAbbreviatedMonthName(v);
+                            continue;
+                        case "MMMM": // MonthNames
+                            var v = utc ? date.getUTCMonth() : date.getMonth();
+                            r += getMonthName(v);
+                            continue;
+                        case "s":
+                        case "ss":
+                            r += _padStart(((utc ? date.getUTCSeconds() : date.getSeconds()) + 1).toString(), tl, '0');
+                            continue;
+                        case "t":
+                            var v = utc ? date.getUTCHours() : date.getHours();
+                            return v < 12 ? 'A' : 'P';
+                        case "tt":
+                            var v = utc ? date.getUTCHours() : date.getHours();
+                            return v < 12 ? 'AM' : 'PM';
+                        case "y":
+                        case "yy":
+                        case "yyy":
+                        case "yyyy":
+                        case "yyyyy":
+                            r += _padStart((utc ? date.getUTCFullYear() : date.getFullYear()).toString(), tl, '0');
+                            continue;
+                        case "z":
+                        case "zz":
+                            var v = date.getTimezoneOffset();
+                            r += (v >= 0 ? '+' : '-') + _padStart(Math.floor(Math.abs(v / 60)).toString(), tl, '0');
+                            continue;
+                    }
+                    break;
+            }
+            throw "Invalid format";
+        }
+
+        return r;
+    }
+
+    function _parseDateFormat(format: string): IDateFormatToken[] {
+        var tokens: IDateFormatToken[] = [];
+        var escaped = false;
+        var prev: IDateFormatToken;
+        for (var i = 0; i < format.length; i++) {
+            var c = format.charAt(i);
+
+            if (escaped) {
+                if (!prev || prev.type !== DateFormatTokenType.Literal) {
+                    prev = {
+                        token: c,
+                        type: DateFormatTokenType.Literal
+                    };
+                    tokens.push(prev);
+                } else {
+                    prev.token += c;
+                }
+                escaped = false;
+            } else {
+                switch (c) {
+                    case 'd':
+                    case 'f':
+                    case 'F':
+                    case 'g':
+                    case 'h':
+                    case 'H':
+                    case 'K':
+                    case 'm':
+                    case 'M':
+                    case 's':
+                    case 't':
+                    case 'y':
+                    case 'z':
+                        if (!prev || prev.type !== DateFormatTokenType.Value || prev.token.charAt(0) !== c) {
+                            prev = {
+                                token: c,
+                                type: DateFormatTokenType.Value
+                            };
+                            tokens.push(prev);
+                        } else {
+                            prev.token += c;
+                        }
+                        break;
+                    case '%':
+                        prev = null;
+                        break;
+                    case ':':
+                        prev = null;
+                        tokens.push({
+                            token: c,
+                            type: DateFormatTokenType.TimeSeparator
+                        });
+                        break;
+                    case '/':
+                        prev = null;
+                        tokens.push({
+                            token: c,
+                            type: DateFormatTokenType.DateSeparator
+                        });
+                        break;
+                    case '\\':
+                        prev = null;
+                        escaped = true;
+                        break;
+                    default:
+                        if (!prev || prev.type !== DateFormatTokenType.Literal) {
+                            prev = {
+                                token: c,
+                                type: DateFormatTokenType.Literal
+                            };
+                            tokens.push(prev);
+                        } else {
+                            prev.token += c;
+                        }
+                        break;
+                }
+            }
+        }
+
+        return tokens;
+    }
+
+    // #endregion formatDate
 }
