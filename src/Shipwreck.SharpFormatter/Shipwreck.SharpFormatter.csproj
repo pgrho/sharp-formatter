@@ -67,6 +67,7 @@
       <DependentUpon>SharpFormatter.js</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="SharpFormatter.js">

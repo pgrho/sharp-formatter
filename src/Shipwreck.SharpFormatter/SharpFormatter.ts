@@ -1,5 +1,6 @@
-﻿module Shipwreck {
-
+﻿/// <reference path="CultureInfo.ts" />
+module Shipwreck {
+    "use strict";
     function _padStart(value: string, length: number, padChar: string): string {
         if ((value as any).padStart) {
             return (value as any).padStart(length, padChar);
@@ -71,9 +72,21 @@
         }
         return null;
     }
+
+    const enum TokenType {
+        Literal,
+        Zero,
+        Number,
+        Dot,
+        Comma,
+        Percent,
+        Permill,
+        Exponential
+    }
+
     interface IToken {
         token: string;
-        type: number;
+        type: TokenType;
     }
     interface ISection {
         tokens: IToken[];
@@ -120,6 +133,13 @@
         ParenthesizedRight,
         ParenthesizedRightWithSpace,
     }
+    const enum FormatState {
+        Literal,
+        Opening,
+        Index,
+        Alignment,
+        Format
+    }
     export class SharpFormatter {
         private static _getCulture(culture: string | CultureInfo): CultureInfo {
             if (culture) {
@@ -146,15 +166,9 @@
         public static format(format: string, args: any[], culture?: string | CultureInfo) {
             var r = '';
 
-            const S_LITERAL = 0;
-            const S_OPENING = 1;
-            const S_INDEX = 2;
-            const S_ALIGNMENT = 3;
-            const S_FORMAT = 4;
-
             var ci = SharpFormatter._getCulture(culture);
 
-            var s = S_LITERAL;
+            var s = FormatState.Literal;
             var index = 0;
             var align = 0;
             var alignSign = 1;
@@ -164,10 +178,10 @@
                 var c = format.charAt(i);
 
                 switch (s) {
-                    case S_LITERAL:
+                    case FormatState.Literal:
                         switch (c) {
                             case '{':
-                                s = S_OPENING;
+                                s = FormatState.Opening;
                                 index = 0;
                                 break;
                             default:
@@ -175,11 +189,11 @@
                                 break;
                         }
                         break;
-                    case S_OPENING:
+                    case FormatState.Opening:
                         switch (c) {
                             case '{':
                                 r += '{';
-                                s = S_LITERAL;
+                                s = FormatState.Literal;
                                 break;
                             case '0':
                             case '1':
@@ -191,16 +205,16 @@
                             case '7':
                             case '8':
                             case '9':
-                                index = parseInt(c);
+                                index = c.charCodeAt(0) - 0x30;
                                 align = 0;
                                 valueFormat = '';
-                                s = S_INDEX;
+                                s = FormatState.Index;
                                 break;
                             default:
                                 throw "Invalid format";
                         }
                         break;
-                    case S_INDEX:
+                    case FormatState.Index:
                         switch (c) {
                             case '0':
                             case '1':
@@ -212,28 +226,28 @@
                             case '7':
                             case '8':
                             case '9':
-                                index = index * 10 + parseInt(c);
+                                index = index * 10 + c.charCodeAt(0) - 0x30;
                                 break;
                             case ',':
-                                s = S_ALIGNMENT;
+                                s = FormatState.Alignment;
                                 align = 0;
                                 alignSign = 1;
                                 break;
                             case ':':
-                                s = S_FORMAT;
+                                s = FormatState.Format;
                                 valueFormat = '';
                                 break;
                             case '}':
                                 var v = args[index];
                                 var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
                                 r += formatter ? formatter.format(v, null, ci) : (v ? v.toString() : '');
-                                s = S_LITERAL;
+                                s = FormatState.Literal;
                                 break;
                             default:
                                 throw "Invalid format";
                         }
                         break;
-                    case S_ALIGNMENT:
+                    case FormatState.Alignment:
                         switch (c) {
                             case '+':
                                 alignSign = 1;
@@ -251,33 +265,33 @@
                             case '7':
                             case '8':
                             case '9':
-                                align = 10 * align + parseInt(c);
+                                align = 10 * align + c.charCodeAt(0) - 0x30;
                                 break;
                             case ':':
-                                s = S_FORMAT;
+                                s = FormatState.Format;
                                 valueFormat = '';
                                 break;
                             case '}':
                                 var v = args[index];
                                 var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
-                                var vs = formatter ? formatter.format(v, null, ci) : (v ? v.toString() : '');
+                                var vs: string = formatter ? formatter.format(v, null, ci) : (v ? v.toString() : '');
                                 r += alignSign > 0 ? _padStart(vs, align, ' ') : _padEnd(vs, align, ' ');
-                                s = S_LITERAL;
+                                s = FormatState.Literal;
                                 break;
                             default:
                                 throw "Invalid format";
                         }
                         break;
-                    case S_FORMAT:
+                    case FormatState.Format:
                         if (c === '}') {
                             var v = args[index];
                             var formatter = SharpFormatter.formatters.filter(f => f.canFormat(v))[0];
-                            var vs = formatter ? formatter.format(v, valueFormat, ci) : (v ? v.toString() : '');
+                            var vs: string = formatter ? formatter.format(v, valueFormat, ci) : (v ? v.toString() : '');
                             if (align > 0) {
                                 vs = alignSign > 0 ? _padStart(vs, align, ' ') : _padEnd(vs, align, ' ');
                             }
                             r += vs;
-                            s = S_LITERAL;
+                            s = FormatState.Literal;
                         } else {
                             valueFormat += c;
                         }
@@ -288,545 +302,542 @@
         }
 
         public static formatNumber(value: number, format: string, culture?: string | CultureInfo) {
-            var T = SharpFormatter;
-
-            return new NumberFormattingContext(SharpFormatter._getCulture(culture)).format(value, format);
+            return _format(SharpFormatter._getCulture(culture), value, format);
         }
     }
 
-    const TOKEN_TYPE_LITERAL = -1;
-    const TOKEN_TYPE_ZERO = 0;
-    const TOKEN_TYPE_NUMBER = 1;
-    const TOKEN_TYPE_DOT = 2;
-    const TOKEN_TYPE_GROUP = 3;
-    const TOKEN_TYPE_PERCENT = 4;
-    const TOKEN_TYPE_PERMILL = 5;
-    const TOKEN_TYPE_EXPONENTIAL = 6;
-    class NumberFormattingContext {
-        private c: CultureInfo;
-        constructor(culture: CultureInfo) {
-            this.c = culture;
+    // #region formatNumber
+
+    // #region CultureInfo
+
+    function _positiveSign(c: CultureInfo): string {
+        return c ? c.positiveSign : "+";
+    }
+    function _negativeSign(c: CultureInfo): string {
+        return c ? c.negativeSign : "-";
+    }
+    function _percentSymbol(c: CultureInfo): string {
+        return c ? c.percentSymbol : "%";
+    }
+
+    function _currencySymbol(c: CultureInfo): string {
+        return c ? c.currencySymbol : '¤';
+    }
+
+    function _numberDecimalSeparator(c: CultureInfo): string {
+        return c ? c.numberDecimalSeparator : ".";
+    }
+    function _numberNegativePattern(c: CultureInfo): SymbolPosition {
+        return c ? c.numberNegativePattern : SymbolPosition.Left;
+    }
+
+    function _currencyPositivePattern(c: CultureInfo): SymbolPosition {
+        return c ? c.currencyPositivePattern : SymbolPosition.Left;
+    }
+
+    function _currencyNegativePattern(c: CultureInfo): SymbolNegativePattern {
+        return c ? c.currencyNegativePattern : SymbolNegativePattern.ParenthesizedLeft;
+    }
+
+    function _percentPositivePattern(c: CultureInfo): SymbolPosition {
+        return c ? c.percentPositivePattern : SymbolPosition.RightWithSpace;
+    }
+
+    function _percentNegativePattern(c: CultureInfo): SymbolNegativePattern {
+        return c ? c.percentNegativePattern : SymbolNegativePattern.SignNumberSpaceSymbol;
+    }
+    function _invariantType(): INumberTypeInfo {
+        return {
+            decimalSeparator: '.',
+            decimalDigits: 2,
+            groupSeparator: ',',
+            groupSizes: [3]
+        };
+    }
+
+    function _numberType(c: CultureInfo): INumberTypeInfo {
+        return c ? c.numberType() : _invariantType();
+    }
+    function _currencyType(c: CultureInfo): INumberTypeInfo {
+        return c ? c.currencyType() : _invariantType();
+    }
+
+    function _percentType(c: CultureInfo): INumberTypeInfo {
+        return c ? c.percentType() : _invariantType();
+    }
+
+    // #endregion CultureInfo
+
+    function _appendNegative(c: CultureInfo, value: number, text: string) {
+        return value >= 0 ? text : (_negativeSign(c) + text);
+    }
+
+    function _format(c: CultureInfo, value: number, format: string): string {
+        if (!format) {
+            return _format(c, value, "g");
         }
 
-        get NaNSymbol(): string {
-            return this.c ? this.c.NaNSymbol : "NaN";
-        }
+        value = value * 1;
 
-        get positiveInifinitySymbol(): string {
-            return this.c ? this.c.positiveInifinitySymbol : "Infinity";
-        }
-
-        get negativeInifinitySymbol(): string {
-            return this.c ? this.c.negativeInifinitySymbol : "-Infinity";
-        }
-        get positiveSign(): string {
-            return this.c ? this.c.positiveSign : "+";
-        }
-        get negativeSign(): string {
-            return this.c ? this.c.negativeSign : "-";
-        }
-
-        get percentSymbol(): string {
-            return this.c ? this.c.percentSymbol : "%";
-        }
-
-        get currencySymbol(): string {
-            return this.c ? this.c.currencySymbol : '¤';
-        }
-
-        invariantType(): INumberTypeInfo {
-            return {
-                decimalSeparator: '.',
-                decimalDigits: 2,
-                groupSeparator: ',',
-                groupSizes: [3]
-            };
-        }
-
-        numberType(): INumberTypeInfo {
-            return this.c ? this.c.numberType() : this.invariantType();
-        }
-        get numberDecimalSeparator(): string {
-            return this.c ? this.c.numberDecimalSeparator : '.';
-        }
-
-        get numberNegativePattern(): SymbolPosition {
-            return this.c ? this.c.numberNegativePattern : SymbolPosition.Left;
-        }
-
-        currencyType(): INumberTypeInfo {
-            return this.c ? this.c.currencyType() : this.invariantType();
-        }
-
-        get currencyPositivePattern(): SymbolPosition {
-            return this.c ? this.c.currencyPositivePattern : SymbolPosition.Left;
-        }
-
-        get currencyNegativePattern(): SymbolNegativePattern {
-            return this.c ? this.c.currencyNegativePattern : SymbolNegativePattern.ParenthesizedLeft;
-        }
-
-        percentType(): INumberTypeInfo {
-            return this.c ? this.c.percentType() : this.invariantType();
-        }
-
-        get percentPositivePattern(): SymbolPosition {
-            return this.c ? this.c.percentPositivePattern : SymbolPosition.RightWithSpace;
-        }
-
-        get percentNegativePattern(): SymbolNegativePattern {
-            return this.c ? this.c.percentNegativePattern : SymbolNegativePattern.SignNumberSpaceSymbol;
-        }
-
-        _appendNegative(value: number, text: string) {
-            return value >= 0 ? text : (this.negativeSign + text);
-        }
-
-        public format(value: number, format: string) {
-            if (!format) {
-                return this.format(value, "g");
-            }
-
-            value = value * 1;
-
-            if (!isFinite(value)) {
-                if (isNaN(value)) {
-                    return this.NaNSymbol;
-                } else if (value > 0) {
-                    return this.positiveInifinitySymbol;
-                } else {
-                    return this.negativeInifinitySymbol;
-                }
-            }
-
-            if (/^[C-GNPRX][0-9]*$/i.test(format)) {
-                var type = format.charCodeAt(0);
-                var length = format.length === 1 ? -1 : parseInt(format.substring(1), 10);
-                switch (type) {
-                    case 0x58: // 'X'
-                    case 0x78: // 'x'
-                        var r = _padStart(value.toString(16), Math.max(0, length), '0');
-                        return format.charAt(0) === 'X' ? r.toUpperCase() : r;
-                }
-
-                switch (type) {
-                    case 0x43: // 'C'
-                    case 0x63: // 'c'
-                        var r = this._formatNumeric(Math.abs(value), length, this.currencyType());
-                        if (value < 0) {
-                            return _formatSymbolNegativePattern(this.currencyNegativePattern, r, this.negativeSign, this.currencySymbol);
-                        } else {
-                            return _formatSymbolPattern(this.currencyPositivePattern, r, this.currencySymbol);
-                        }
-                    case 0x44: // 'D':
-                    case 0x64: // 'd':
-                        return this._appendNegative(value, _padStart(Math.abs(value).toFixed(), Math.max(0, length), '0'));
-                    case 0x45: // 'E':
-                    case 0x65: // 'e':
-                        return this._appendNegative(value, this._formatExponential(Math.abs(value), length < 0 ? 6 : length, type == 0x45));
-                    case 0x46: // 'F':
-                    case 0x66: // 'f':
-                        var nt = this.numberType();
-                        var r = this._appendNegative(value, Math.abs(value).toFixed(length >= 0 ? length : nt.decimalDigits));
-                        if (nt.decimalSeparator !== '.') {
-                            r = r.replace('.', nt.decimalSeparator);
-                        }
-                        return r;
-                    case 0x47: // 'G':
-                    case 0x67: // 'g':
-                    case 0x52: // 'R'
-                    case 0x72: // 'r'
-                        length = (type & 1) && length >= 0 ? length : 15;
-                        if (value === 0) {
-                            return '0';
-                        }
-                        var exp = Math.floor(Math.log(Math.abs(value)) / Math.LN10);
-                        if (-5 < exp && exp < length) {
-                            r = Math.abs(value).toFixed(length - exp - 1);
-                            r = r.replace(/\.?0+$/, '');
-                        } else {
-                            r = Math.abs(exp) < 10 ? ((Math.abs(value) * Math.pow(10, -exp)).toFixed(length - 1) + (type === 0x47 ? 'E' : 'e') + (exp >= 0 ? this.positiveSign : this.negativeSign) + '0' + Math.abs(exp)) : Math.abs(value).toExponential(length - 1);
-                            if (this.positiveSign !== '+') {
-                                r = r.replace('+', this.positiveSign);
-                            }
-                            if (Math.abs(exp) > 9 && type === 0x47) {
-                                r = r.replace('e', 'E');
-                            }
-                        }
-                        if (this.numberDecimalSeparator !== '.') {
-                            r = r.replace('.', this.numberDecimalSeparator);
-                        }
-                        return this._appendNegative(value, r);
-
-                    case 0x4e: // 'N'
-                    case 0x6e: // 'n'
-                        var r = this._formatNumeric(Math.abs(value), length, this.numberType());
-                        if (value < 0) {
-                            return _formatSymbolPattern(this.numberNegativePattern, r, this.negativeSign);
-                        }
-                        return r;
-
-                    case 0x50: // 'P'
-                    case 0x70: // 'p'
-                        var r = this._formatNumeric(Math.abs(value) * 100, length, this.percentType());
-                        if (value < 0) {
-                            return _formatSymbolNegativePattern(this.percentNegativePattern, r, this.negativeSign, this.percentSymbol);
-                        } else {
-                            return _formatSymbolPattern(this.percentPositivePattern, r, this.percentSymbol);
-                        }
-                }
-            } else if (/^.$/.test(format)) {
-                throw "Invalid format";
-            }
-
-            return this._formatCustom(value, format);
-        }
-
-        private _formatExponential(value: number, length: number, capital: boolean): string {
-            length = length >= 0 ? length : 6;
-            var r = value.toExponential(length);
-            var di = r.lastIndexOf('.');
-            r = r.replace(/[-+][0-9]{1,2}$/, m => m.charAt(0) + (m.length === 2 ? "00" : "0") + m.substring(1));
-            if (this.negativeSign !== '-' || this.positiveSign !== '+' || this.numberDecimalSeparator !== '.') {
-                r = r.replace(/[-+.]/, v => v === '-' ? this.negativeSign : v === '+' ? this.positiveSign : this.numberDecimalSeparator);
-            }
-            return capital ? r.toUpperCase() : r;
-        }
-        private _formatNumeric(value: number, length: number, typeInfo: INumberTypeInfo): string {
-            var r = value.toFixed(length >= 0 ? length : typeInfo.decimalDigits);
-            var dp = r.indexOf('.');
-            if (dp < 0) {
-                dp = r.length;
-            } else if (typeInfo.decimalSeparator !== '.') {
-                r = r.substr(0, dp) + typeInfo.decimalSeparator + r.substring(dp + 1);
-            }
-            var size = typeInfo.groupSizes[0];
-            var si = 0;
-            var sep = typeInfo.groupSeparator;
-            for (var i = dp - size; i > 0; i -= size) {
-                r = r.substr(0, i) + sep + r.substring(i);
-                if (++si < typeInfo.groupSizes.length) {
-                    size = typeInfo.groupSizes[si];
-                    if (size == 0) {
-                        break;
-                    }
-                }
-            }
-            return r;
-        }
-        private _formatCustom(value: number, format: string): string {
-            var sections = NumberFormattingContext._parseCustom(format);
-            if (sections.length === 1) {
-                return this._appendNegative(value, this._formatSection(Math.abs(value), sections[0]));
-            } else if (sections.length === 2) {
-                return this._formatSection(Math.abs(value), value < 0 ? sections[1] : sections[0]);
+        if (!isFinite(value)) {
+            if (isNaN(value)) {
+                return c ? c.NaNSymbol : "NaN";
+            } else if (value > 0) {
+                return c ? c.positiveInifinitySymbol : "Infinity";
             } else {
-                var sec: ISection;
-                if (value > 0) {
+                return c ? c.negativeInifinitySymbol : "-Infinity";
+            }
+        }
+
+        if (/^[C-GNPRX][0-9]*$/i.test(format)) {
+            var type = format.charCodeAt(0);
+            var length = format.length === 1 ? -1 : parseInt(format.substring(1), 10);
+            switch (type) {
+                case 0x58: // 'X'
+                case 0x78: // 'x'
+                    var r = _padStart(value.toString(16), Math.max(0, length), '0');
+                    return format.charAt(0) === 'X' ? r.toUpperCase() : r;
+            }
+
+            switch (type) {
+                case 0x43: // 'C'
+                case 0x63: // 'c'
+                    var r = _formatNumeric(Math.abs(value), length, _currencyType(c));
+                    if (value < 0) {
+                        return _formatSymbolNegativePattern(_currencyNegativePattern(c), r, _negativeSign(c), _currencySymbol(c));
+                    } else {
+                        return _formatSymbolPattern(_currencyPositivePattern(c), r, _currencySymbol(c));
+                    }
+                case 0x44: // 'D':
+                case 0x64: // 'd':
+                    return _appendNegative(c, value, _padStart(Math.abs(value).toFixed(), Math.max(0, length), '0'));
+                case 0x45: // 'E':
+                case 0x65: // 'e':
+                    return _formatExponential(c, Math.abs(value), length < 0 ? 6 : length, type === 0x45);
+                case 0x46: // 'F':
+                case 0x66: // 'f':
+                    var nt = _numberType(c);
+                    var r = _appendNegative(c, value, Math.abs(value).toFixed(length >= 0 ? length : nt.decimalDigits));
+                    if (nt.decimalSeparator !== '.') {
+                        r = r.replace('.', nt.decimalSeparator);
+                    }
+                    return r;
+                case 0x47: // 'G':
+                case 0x67: // 'g':
+                case 0x52: // 'R'
+                case 0x72: // 'r'
+                    length = (type & 1) && length >= 0 ? length : 15;
+                    if (value === 0) {
+                        return '0';
+                    }
+                    var exp = Math.floor(Math.log(Math.abs(value)) / Math.LN10);
+                    if (-5 < exp && exp < length) {
+                        r = Math.abs(value).toFixed(length - exp - 1);
+                        r = r.replace(/\.?0+$/, '');
+                    } else {
+                        r = Math.abs(exp) < 10 ? ((Math.abs(value) * Math.pow(10, -exp)).toFixed(length - 1) + (type === 0x47 ? 'E' : 'e') + (exp >= 0 ? _positiveSign(c) : _negativeSign(c)) + '0' + Math.abs(exp)) : Math.abs(value).toExponential(length - 1);
+                        if (c && c.positiveSign !== '+') {
+                            r = r.replace('+', c.positiveSign);
+                        }
+                        if (Math.abs(exp) > 9 && type === 0x47) {
+                            r = r.replace('e', 'E');
+                        }
+                    }
+                    if (c && c.numberDecimalSeparator !== '.') {
+                        r = r.replace('.', c.numberDecimalSeparator);
+                    }
+                    return _appendNegative(c, value, r);
+
+                case 0x4e: // 'N'
+                case 0x6e: // 'n'
+                    var r = _formatNumeric(Math.abs(value), length, _numberType(c));
+                    if (value < 0) {
+                        return _formatSymbolPattern(_numberNegativePattern(c), r, _negativeSign(c));
+                    }
+                    return r;
+
+                case 0x50: // 'P'
+                case 0x70: // 'p'
+                    var r = _formatNumeric(Math.abs(value) * 100, length, _percentType(c));
+                    if (value < 0) {
+                        return _formatSymbolNegativePattern(_percentNegativePattern(c), r, _negativeSign(c), _percentSymbol(c));
+                    } else {
+                        return _formatSymbolPattern(_percentPositivePattern(c), r, _percentSymbol(c));
+                    }
+            }
+        } else if (/^.$/.test(format)) {
+            throw "Invalid format";
+        }
+
+        return _formatCustom(c, value, format);
+    }
+
+    function _formatExponential(c: CultureInfo, value: number, length: number, capital: boolean): string {
+        // get JavaScript exponential notation
+        var r = Math.abs(value).toExponential(length >= 0 ? length : 6);
+
+        // capitalize result and  Insert zeros to the exponential part to be 3digits
+        r = r.replace(
+            /E[-+][0-9]+$/i,
+            m => (capital ? 'E' : 'e') +
+                (m.charAt(1) === '+' ? _positiveSign(c) : _negativeSign(c)) +
+                _padStart(m.substring(2), 3, '0'));
+
+        // localize decimal separator
+        if (c && c.numberDecimalSeparator !== '.') {
+            r = r.replace('.', c.numberDecimalSeparator);
+        }
+
+        // append negative sign if needed
+        return _appendNegative(c, value, r);
+    }
+
+    function _formatNumeric(value: number, length: number, typeInfo: INumberTypeInfo): string {
+        // get JavaScript fixed notation
+        var r = value.toFixed(length >= 0 ? length : typeInfo.decimalDigits);
+
+        // find decimal separator
+        var dp = r.indexOf('.');
+        if (dp < 0) {
+            dp = r.length;
+        } else if (typeInfo.decimalSeparator !== '.') {
+            r = r.replace('.', typeInfo.decimalSeparator);
+        }
+
+        // insert group separators
+        var size = typeInfo.groupSizes[0];
+        var si = 0;
+        var sep = typeInfo.groupSeparator;
+        for (var i = dp - size; i > 0; i -= size) {
+            r = r.substr(0, i) + sep + r.substring(i);
+            if (++si < typeInfo.groupSizes.length) {
+                size = typeInfo.groupSizes[si];
+                if (size === 0) {
+                    break;
+                }
+            }
+        }
+
+        return r;
+    }
+
+    // #region _formatCustom
+    function _formatCustom(c: CultureInfo, value: number, format: string): string {
+        var sections = _parseCustom(format);
+        if (sections.length === 1) {
+            return _appendNegative(c, value, _formatSection(c, Math.abs(value), sections[0]));
+        } else if (sections.length === 2) {
+            return _formatSection(c, Math.abs(value), value < 0 ? sections[1] : sections[0]);
+        } else {
+            var sec: ISection;
+            if (value > 0) {
+                sec = sections[0];
+            } else if (value < 0) {
+                sec = sections[1];
+                if (sec.tokens.length === 0) {
                     sec = sections[0];
-                } else if (value < 0) {
-                    sec = sections[1];
-                    if (sec.tokens.length == 0) {
-                        sec = sections[0];
-                    }
-                } else {
-                    sec = sections[2];
                 }
-                return this._formatSection(Math.abs(value), sec);
-            }
-        }
-
-        private static _parseCustom(format: string): ISection[] {
-            var sec: IToken[] = [];
-            var sections: IToken[][] = [sec];
-            var escaped = false;
-            var quote: string = null;
-            var buff = "";
-            var exp = false;
-            for (var i = 0; i < format.length; i++) {
-                var c = format.charAt(i);
-
-                if (escaped) {
-                    buff += c;
-                    escaped = false;
-                    continue;
-                } else if (quote) {
-                    if (c === '\\') {
-                        escaped = true;
-                    } else if (c === quote) {
-                        sec.push({ token: buff, type: TOKEN_TYPE_LITERAL });
-                        buff = "";
-                        quote = null;
-                    } else {
-                        buff += c;
-                    }
-                    continue;
-                } else if (exp) {
-                    if (c === '0') {
-                        sec.push({ token: buff + c, type: TOKEN_TYPE_EXPONENTIAL });
-                        buff = "";
-                        exp = false;
-                        continue;
-                    } else if (buff.length === 1 && (c === '+' || c === '-')) {
-                        buff += c;
-                        continue;
-                    } else {
-                        buff += c;
-                    }
-                }
-
-                switch (c) {
-                    case ';':
-                    case '\'':
-                    case '"':
-                    case 'E':
-                    case 'e':
-                    case '0':
-                    case '#':
-                    case '.':
-                    case ',':
-                    case '%':
-                    case '‰':
-                        if (buff) {
-                            sec.push({ token: buff, type: TOKEN_TYPE_LITERAL });
-                            buff = "";
-                        }
-                        break;
-                }
-
-                switch (c) {
-                    case ';':
-                        sec = [];
-                        sections.push(sec);
-                        break;
-                    case '\'':
-                    case '"':
-                        quote = c;
-                        break;
-                    case 'E':
-                    case 'e':
-                        buff = c;
-                        exp = true;
-                        continue;
-                    case '\\':
-                        escaped = true;
-                        break;
-                    case '0':
-                        sec.push({ token: c, type: TOKEN_TYPE_ZERO });
-                        break;
-                    case '#':
-                        sec.push({ token: c, type: TOKEN_TYPE_NUMBER });
-                        break;
-                    case '.':
-                        sec.push({ token: c, type: TOKEN_TYPE_DOT });
-                        break;
-                    case ',':
-                        sec.push({ token: c, type: TOKEN_TYPE_GROUP });
-                        break;
-                    case '%':
-                        sec.push({ token: c, type: TOKEN_TYPE_PERCENT });
-                        break;
-                    case '‰':
-                        sec.push({ token: c, type: TOKEN_TYPE_PERMILL });
-                        break;
-                    default:
-                        if (!exp) {
-                            buff += c;
-                        }
-                        break;
-                }
-                exp = false;
-            }
-            if (escaped) {
-                buff += '\\';
-            }
-            if (buff) {
-                sec.push({ token: buff, type: TOKEN_TYPE_LITERAL });
-            }
-
-            var r: ISection[] = [];
-
-            for (var sec of sections) {
-                var hasExp = false;
-                var dotPos = -1;
-                var grouped = false;
-                var coeff = 1;
-                var il = 0;
-                var fl = 0;
-                var fp = -1;
-                var fz = -1;
-                var lz = -1;
-                for (var i = 0; i < sec.length; i++) {
-                    var t = sec[i];
-                    switch (t.type) {
-                        case TOKEN_TYPE_ZERO:
-                            if (fz < 0) {
-                                fz = i;
-                            }
-                            lz = i;
-                        case TOKEN_TYPE_NUMBER:
-                            if (dotPos >= 0) {
-                                fl++;
-                            } else {
-                                il++;
-                            }
-                            if (fp < 0) {
-                                fp = i;
-                            }
-                            break;
-                        case TOKEN_TYPE_DOT:
-                            if (dotPos < 0) {
-                                dotPos = i;
-                            }
-                            break;
-                        case TOKEN_TYPE_GROUP:
-                            if (dotPos < 0) {
-                                var found = false;
-                                for (var j = i + 1; j < sec.length; j++) {
-                                    var ls = sec[j];
-                                    if (ls.type === TOKEN_TYPE_DOT) {
-                                        break;
-                                    } else if (ls.type === TOKEN_TYPE_ZERO || ls.type === TOKEN_TYPE_NUMBER) {
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                                if (found) {
-                                    grouped = true;
-                                } else {
-                                    coeff *= 0.001;
-                                }
-                            } else {
-                                grouped = true;
-                            }
-                            break;
-                        case TOKEN_TYPE_PERCENT:
-                            coeff *= 100;
-                            break;
-                        case TOKEN_TYPE_PERMILL:
-                            coeff *= 1000;
-                            break;
-                        case TOKEN_TYPE_EXPONENTIAL:
-                            hasExp = true;
-                            break;
-                    }
-                }
-                for (var i = fz + 1; i < lz; i++) {
-                    var t = sec[i];
-                    if (t.type === TOKEN_TYPE_NUMBER) {
-                        t.type = TOKEN_TYPE_ZERO;
-                    }
-                }
-                r.push({
-                    tokens: sec,
-                    exponential: hasExp,
-                    coefficient: coeff,
-                    dot: dotPos,
-                    grouped: grouped,
-                    integerDigits: il,
-                    fractionDigits: fl,
-                    firstPlaceholder: fp
-                });
-            }
-
-            return r;
-        }
-
-        private _formatSection(value: number, sec: ISection): string {
-            var v = value * sec.coefficient, exp = 0;
-
-            if (sec.exponential) {
-                exp = Math.floor(Math.log(v) / Math.LN10) - Math.max(sec.integerDigits - 1, 0);
-                v *= Math.pow(10, -exp);
-            }
-
-            var vs = v.toFixed(sec.fractionDigits);
-            var dp = vs.lastIndexOf('.');
-            if (dp < 0) {
-                if (vs === '0') {
-                    vs = '';
-                }
-                dp = vs.length;
             } else {
-                vs = vs.replace(/\.?0*$/, '');
+                sec = sections[2];
             }
-            var r = "";
-
-            var ple = -sec.fractionDigits;
-            var nt = this.numberType();
-            var sizes = nt.groupSizes;
-            var gs = sec.grouped ? sizes[0] - 1 : NaN;
-            var gi = 1;
-            var ld = -1;
-
-            for (var i = sec.tokens.length - 1; i >= 0; i--) {
-                var t = sec.tokens[i];
-                switch (t.type) {
-                    case TOKEN_TYPE_ZERO:
-                    case TOKEN_TYPE_NUMBER:
-                        var j = dp - ple - (ple >= 0 ? 1 : 0);
-                        if (0 <= j && j < vs.length) {
-                            if (i === sec.firstPlaceholder) {
-                                if (sec.grouped) {
-                                    while (j >= 0) {
-                                        if (0 < j && gs === ple) {
-                                            r = nt.groupSeparator + vs.charAt(j) + r;
-                                            gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
-                                        } else {
-                                            r = vs.charAt(j) + r;
-                                        }
-                                        ple++;
-                                        j--;
-                                    }
-                                } else {
-                                    r = vs.substring(0, j + 1) + r;
-                                }
-                            } else {
-                                var prev = sec.tokens[i - 1];
-                                if (sec.grouped
-                                    && gs === ple
-                                    && (prev.type === TOKEN_TYPE_ZERO || (prev.type === TOKEN_TYPE_NUMBER && j > 0))) {
-                                    r = nt.groupSeparator + vs.charAt(j) + r;
-                                    gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
-                                } else {
-                                    r = vs.charAt(j) + r;
-                                }
-                            }
-                            ld = Math.max(ld, i);
-                        } else if (t.type === TOKEN_TYPE_ZERO) {
-                            r = '0' + r;
-                            ld = Math.max(ld, i);
-                        }
-                        ple++;
-                        break;
-                    case TOKEN_TYPE_LITERAL:
-                    case TOKEN_TYPE_PERMILL:
-                        r = t.token + r;
-                        break;
-                    case TOKEN_TYPE_DOT:
-                        if (i === sec.dot && ld > -1) {
-                            r = nt.decimalSeparator + r;
-                        }
-                        break;
-
-                    case TOKEN_TYPE_PERCENT:
-                        r = this.percentSymbol + r;
-                        break;
-
-                    case TOKEN_TYPE_EXPONENTIAL:
-                        r = t.token.charAt(0) +
-                            (exp >= 0 ? (t.token.charAt(1) === '+' ? this.positiveSign : '') : this.negativeSign) +
-                            Math.abs(exp) +
-                            r;
-                        break;
-
-                    case TOKEN_TYPE_GROUP:
-                    default:
-                        break;
-                }
-            }
-
-            return r;
+            return _formatSection(c, Math.abs(value), sec);
         }
     }
+
+    function _parseCustom(format: string): ISection[] {
+        var sec: IToken[] = [];
+        var sections: IToken[][] = [sec];
+        var escaped = false;
+        var quote: string = null;
+        var buff = "";
+        var exp = false;
+        for (var i = 0; i < format.length; i++) {
+            var c = format.charAt(i);
+
+            if (escaped) {
+                buff += c;
+                escaped = false;
+                continue;
+            } else if (quote) {
+                if (c === '\\') {
+                    escaped = true;
+                } else if (c === quote) {
+                    sec.push({ token: buff, type: TokenType.Literal });
+                    buff = "";
+                    quote = null;
+                } else {
+                    buff += c;
+                }
+                continue;
+            } else if (exp) {
+                if (c === '0') {
+                    sec.push({ token: buff + c, type: TokenType.Exponential });
+                    buff = "";
+                    exp = false;
+                    continue;
+                } else if (buff.length === 1 && (c === '+' || c === '-')) {
+                    buff += c;
+                    continue;
+                } else {
+                    buff += c;
+                }
+            }
+
+            switch (c) {
+                case ';':
+                case '\'':
+                case '"':
+                case 'E':
+                case 'e':
+                case '0':
+                case '#':
+                case '.':
+                case ',':
+                case '%':
+                case '‰':
+                    if (buff) {
+                        sec.push({ token: buff, type: TokenType.Literal });
+                        buff = "";
+                    }
+                    break;
+            }
+
+            switch (c) {
+                case ';':
+                    sec = [];
+                    sections.push(sec);
+                    break;
+                case '\'':
+                case '"':
+                    quote = c;
+                    break;
+                case 'E':
+                case 'e':
+                    buff = c;
+                    exp = true;
+                    continue;
+                case '\\':
+                    escaped = true;
+                    break;
+                case '0':
+                    sec.push({ token: c, type: TokenType.Zero });
+                    break;
+                case '#':
+                    sec.push({ token: c, type: TokenType.Number });
+                    break;
+                case '.':
+                    sec.push({ token: c, type: TokenType.Dot });
+                    break;
+                case ',':
+                    sec.push({ token: c, type: TokenType.Comma });
+                    break;
+                case '%':
+                    sec.push({ token: c, type: TokenType.Percent });
+                    break;
+                case '‰':
+                    sec.push({ token: c, type: TokenType.Permill });
+                    break;
+                default:
+                    if (!exp) {
+                        buff += c;
+                    }
+                    break;
+            }
+            exp = false;
+        }
+        if (escaped) {
+            buff += '\\';
+        }
+        if (buff) {
+            sec.push({ token: buff, type: TokenType.Literal });
+        }
+
+        var r: ISection[] = [];
+
+        for (var sec of sections) {
+            var hasExp = false;
+            var dotPos = -1;
+            var grouped = false;
+            var coeff = 1;
+            var il = 0;
+            var fl = 0;
+            var fp = -1;
+            var fz = -1;
+            var lz = -1;
+            for (var i = 0; i < sec.length; i++) {
+                var t = sec[i];
+                switch (t.type) {
+                    case TokenType.Zero:
+                        if (fz < 0) {
+                            fz = i;
+                        }
+                        lz = i;
+                    case TokenType.Number:
+                        if (dotPos >= 0) {
+                            fl++;
+                        } else {
+                            il++;
+                        }
+                        if (fp < 0) {
+                            fp = i;
+                        }
+                        break;
+                    case TokenType.Dot:
+                        if (dotPos < 0) {
+                            dotPos = i;
+                        }
+                        break;
+                    case TokenType.Comma:
+                        if (dotPos < 0) {
+                            var found = false;
+                            for (var j = i + 1; j < sec.length; j++) {
+                                var ls = sec[j];
+                                if (ls.type === TokenType.Dot) {
+                                    break;
+                                } else if (ls.type === TokenType.Zero || ls.type === TokenType.Number) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found) {
+                                grouped = true;
+                            } else {
+                                coeff *= 0.001;
+                            }
+                        } else {
+                            grouped = true;
+                        }
+                        break;
+                    case TokenType.Percent:
+                        coeff *= 100;
+                        break;
+                    case TokenType.Permill:
+                        coeff *= 1000;
+                        break;
+                    case TokenType.Exponential:
+                        hasExp = true;
+                        break;
+                }
+            }
+            for (var i = fz + 1; i < lz; i++) {
+                var t = sec[i];
+                if (t.type === TokenType.Number) {
+                    t.type = TokenType.Zero;
+                }
+            }
+            r.push({
+                tokens: sec,
+                exponential: hasExp,
+                coefficient: coeff,
+                dot: dotPos,
+                grouped: grouped,
+                integerDigits: il,
+                fractionDigits: fl,
+                firstPlaceholder: fp
+            });
+        }
+
+        return r;
+    }
+
+    function _formatSection(c: CultureInfo, value: number, sec: ISection): string {
+        var v = value * sec.coefficient, exp = 0;
+
+        if (sec.exponential) {
+            exp = Math.floor(Math.log(v) / Math.LN10) - Math.max(sec.integerDigits - 1, 0);
+            v *= Math.pow(10, -exp);
+        }
+
+        var vs: string = v.toFixed(sec.fractionDigits);
+        var dp = vs.lastIndexOf('.');
+        if (dp < 0) {
+            if (vs === '0') {
+                vs = '';
+            }
+            dp = vs.length;
+        } else {
+            vs = vs.replace(/\.?0*$/, '');
+        }
+        var r = "";
+
+        var ple = -sec.fractionDigits;
+        var nt = _numberType(c);
+        var sizes = nt.groupSizes;
+        var gs = sec.grouped ? sizes[0] - 1 : NaN;
+        var gi = 1;
+        var ld = -1;
+
+        for (var i = sec.tokens.length - 1; i >= 0; i--) {
+            var t = sec.tokens[i];
+            switch (t.type) {
+                case TokenType.Zero:
+                case TokenType.Number:
+                    var j = dp - ple - (ple >= 0 ? 1 : 0);
+                    if (0 <= j && j < vs.length) {
+                        if (i === sec.firstPlaceholder) {
+                            if (sec.grouped) {
+                                while (j >= 0) {
+                                    if (0 < j && gs === ple) {
+                                        r = nt.groupSeparator + vs.charAt(j) + r;
+                                        gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
+                                    } else {
+                                        r = vs.charAt(j) + r;
+                                    }
+                                    ple++;
+                                    j--;
+                                }
+                            } else {
+                                r = vs.substring(0, j + 1) + r;
+                            }
+                        } else {
+                            var prev = sec.tokens[i - 1];
+                            if (sec.grouped
+                                && gs === ple
+                                && (prev.type === TokenType.Zero || (prev.type === TokenType.Number && j > 0))) {
+                                r = nt.groupSeparator + vs.charAt(j) + r;
+                                gs += gi < sizes.length ? sizes[gi++] : sizes[sizes.length - 1];
+                            } else {
+                                r = vs.charAt(j) + r;
+                            }
+                        }
+                        ld = Math.max(ld, i);
+                    } else if (t.type === TokenType.Zero) {
+                        r = '0' + r;
+                        ld = Math.max(ld, i);
+                    }
+                    ple++;
+                    break;
+                case TokenType.Literal:
+                case TokenType.Permill:
+                    r = t.token + r;
+                    break;
+                case TokenType.Dot:
+                    if (i === sec.dot && ld > -1) {
+                        r = nt.decimalSeparator + r;
+                    }
+                    break;
+
+                case TokenType.Percent:
+                    r = _percentSymbol(c) + r;
+                    break;
+
+                case TokenType.Exponential:
+                    r = t.token.charAt(0) +
+                        (exp >= 0 ? (t.token.charAt(1) === '+' ? _positiveSign(c) : '') : _negativeSign(c)) +
+                        Math.abs(exp) +
+                        r;
+                    break;
+
+                case TokenType.Comma:
+                default:
+                    break;
+            }
+        }
+
+        return r;
+    }
+
+    // #endregion
+
+    // #endregion formatNumber
 }

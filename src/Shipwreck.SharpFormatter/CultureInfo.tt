@@ -4,6 +4,7 @@
 <#@ import namespace="System.Globalization" #>
 <#@ output extension="ts" #>
 module Shipwreck {
+	"use strict";
 	export class CultureInfo {
 		
 		private static _cache: { [name: string]: CultureInfo };

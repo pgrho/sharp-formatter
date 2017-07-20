@@ -1,4 +1,5 @@
 ﻿module Shipwreck {
+	"use strict";
 	export class CultureInfo {
 		
 		private static _cache: { [name: string]: CultureInfo };
