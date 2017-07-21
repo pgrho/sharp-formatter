@@ -12,6 +12,49 @@ module Shipwreck {
 		private static _currentCulture: CultureInfo;
 		
 		public name: string;
+
+		private _numberFormat: NumberFormatInfo;
+
+		private constructor(name: string) {
+			this.name = name;
+		}
+		public get numberFormat(): NumberFormatInfo {
+			return this._numberFormat || (this._numberFormat = NumberFormatInfo.getInstance(this.name));
+		}
+
+		public static get invariantCulture() : CultureInfo {
+			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = new CultureInfo(""));
+		}
+
+		public static get currentCulture() : CultureInfo {
+			return CultureInfo._currentCulture || (CultureInfo._currentCulture = CultureInfo.getCulture((navigator as any).userLanguage || (navigator as any).browserLanguage || navigator.language));
+		}
+
+		public static getCulture(name: string): CultureInfo {
+			if (name) {
+				var k = name.substring(0, 2).toLowerCase();
+				var c : CultureInfo;
+				if (CultureInfo._cache) {
+					c = CultureInfo._cache[k];
+					if (c) {
+						return c;
+					}
+				} else {
+					CultureInfo._cache = {};
+				}
+				c = new CultureInfo(k);
+				CultureInfo._cache[k] = c;
+				return c;
+			}
+			return CultureInfo.invariantCulture;
+		}
+	}
+	
+	export class NumberFormatInfo {
+
+		private static _invariantInfo: NumberFormatInfo;
+		private static _cache: { [name: string]: NumberFormatInfo };
+		
 		public positiveSign: string;
 		public negativeSign: string;
 		
@@ -41,7 +84,7 @@ module Shipwreck {
 		public percentGroupSeparator: string;
 		public percentGroupSizes: number[];
 		
-		private constructor(name: string, positiveSign: string, negativeSign: string
+		private constructor(positiveSign: string, negativeSign: string
 		, positiveInifinitySymbol: string, negativeInifinitySymbol: string, NaNSymbol: string
 		, numberDecimalSeparator: string, numberDecimalDigits: number
 		, numberNegativePattern: SymbolPosition, numberGroupSeparator: string, numberGroupSizes: number[]
@@ -49,7 +92,7 @@ module Shipwreck {
 		, currencyDecimalDigits: number, currencyDecimalSeparator: string, currencyGroupSeparator: string, currencyGroupSizes: number[]
 		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: SymbolNegativePattern
 		, percentDecimalDigits: number, percentDecimalSeparator: string, percentGroupSeparator: string, percentGroupSizes: number[]) {
-			this.name = name;
+
 			this.positiveSign = positiveSign;
 			this.negativeSign = negativeSign;
 
@@ -104,30 +147,26 @@ module Shipwreck {
 				groupSizes: this.currencyGroupSizes
 			};
 		}
-
-		public static get invariantCulture() : CultureInfo {
-			return CultureInfo._invariantCulture || (CultureInfo._invariantCulture = <#= GetCulture("\"\"", CultureInfo.InvariantCulture) #>);
+		
+		public static get invariantInfo() : NumberFormatInfo {
+			return NumberFormatInfo._invariantInfo || (NumberFormatInfo._invariantInfo = <#= GetNumberFormatInfo(NumberFormatInfo.InvariantInfo) #>);
 		}
 
-		public static get currentCulture() : CultureInfo {
-			return CultureInfo._currentCulture || (CultureInfo._currentCulture = CultureInfo.getCulture((navigator as any).userLanguage || (navigator as any).browserLanguage || navigator.language));
-		}
-
-		public static getCulture(name: string): CultureInfo {
+		public static getInstance(name: string): NumberFormatInfo {
 			if (name) {
 				var k = name.substring(0, 2).toLowerCase();
-				var c : CultureInfo;
-				if (CultureInfo._cache) {
-					c = CultureInfo._cache[k];
+				var c : NumberFormatInfo;
+				if (NumberFormatInfo._cache) {
+					c = NumberFormatInfo._cache[k];
 					if (c) {
 						return c;
 					}
 				} else {
-					CultureInfo._cache = {};
+					NumberFormatInfo._cache = {};
 				}
 				switch (k) {
 <#
-foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e => e.Name?.Length == 2).GroupBy(e => GetCulture(null, e)))
+foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e => e.Name?.Length == 2).GroupBy(e => GetNumberFormatInfo(e.NumberFormat)))
 {
 	foreach (var c in g) {
 #>
@@ -135,24 +174,23 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 <#
 	}
 #>
-						c = <#= GetCulture("k", g.First()) #>;
+						c = <#= g.Key #>;
 						break;
 <#
 }
 #>
 				}
 				if (c) {
-					CultureInfo._cache[k] = c;
+					NumberFormatInfo._cache[k] = c;
 					return c;
 				}
 			}
-			return CultureInfo.invariantCulture;
+			return NumberFormatInfo.invariantInfo;
 		}
 	}
 }
 <#+
-	public string GetCulture(string name, CultureInfo c) {
-		var n = c.NumberFormat;
+	public string GetNumberFormatInfo(NumberFormatInfo n) {
 		string nnp;
 		switch (n.NumberNegativePattern) {
 			case 0:
@@ -297,7 +335,7 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 				pnp = "SignNumberSpaceSymbol";
 				break;
 		}
-		return $"new CultureInfo({name}, \"{n.PositiveSign}\", \"{n.NegativeSign}\""
+		return $"new NumberFormatInfo(\"{n.PositiveSign}\", \"{n.NegativeSign}\""
 				+ $", \"{n.PositiveInfinitySymbol}\", \"{n.NegativeInfinitySymbol}\", \"{n.NaNSymbol}\""
 				+ $", \"{n.NumberDecimalSeparator}\", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}]"
 				+ $", \"{n.CurrencySymbol}\", SymbolPosition.{cpp}, SymbolNegativePattern.{cnp}, {n.CurrencyDecimalDigits}"

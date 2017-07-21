@@ -87,7 +87,7 @@ module Shipwreck {
     export class SharpFormatter {
         private static _getCulture(culture: string | CultureInfo): CultureInfo {
             if (culture) {
-                if ((culture as CultureInfo).negativeSign) {
+                if ((culture as CultureInfo).numberFormat) {
                     return (culture as CultureInfo);
                 }
             }
@@ -253,8 +253,15 @@ module Shipwreck {
             return r;
         }
 
-        public static formatNumber(value: number, format: string, culture?: string | CultureInfo) {
-            return _format(SharpFormatter._getCulture(culture), value, format);
+        public static formatNumber(value: number, format: string, culture?: string | CultureInfo | NumberFormatInfo) {
+            var nf = culture as NumberFormatInfo;
+            if (!nf || !nf.positiveSign) {
+                var c = SharpFormatter._getCulture(culture as any);
+                if (c) {
+                    nf = c.numberFormat;
+                }
+            }
+            return _format(nf, value, format);
         }
         public static formatDate(value: Date, format: string, culture?: string | CultureInfo) {
             return _formatDate(value, format);
@@ -319,42 +326,42 @@ module Shipwreck {
         ParenthesizedRightWithSpace,
     }
 
-    // #region CultureInfo
+    // #region NumberFormatInfo
 
-    function _positiveSign(c: CultureInfo): string {
+    function _positiveSign(c: NumberFormatInfo): string {
         return c ? c.positiveSign : "+";
     }
-    function _negativeSign(c: CultureInfo): string {
+    function _negativeSign(c: NumberFormatInfo): string {
         return c ? c.negativeSign : "-";
     }
-    function _percentSymbol(c: CultureInfo): string {
+    function _percentSymbol(c: NumberFormatInfo): string {
         return c ? c.percentSymbol : "%";
     }
 
-    function _currencySymbol(c: CultureInfo): string {
+    function _currencySymbol(c: NumberFormatInfo): string {
         return c ? c.currencySymbol : '¤';
     }
 
-    function _numberDecimalSeparator(c: CultureInfo): string {
+    function _numberDecimalSeparator(c: NumberFormatInfo): string {
         return c ? c.numberDecimalSeparator : ".";
     }
-    function _numberNegativePattern(c: CultureInfo): SymbolPosition {
+    function _numberNegativePattern(c: NumberFormatInfo): SymbolPosition {
         return c ? c.numberNegativePattern : SymbolPosition.Left;
     }
 
-    function _currencyPositivePattern(c: CultureInfo): SymbolPosition {
+    function _currencyPositivePattern(c: NumberFormatInfo): SymbolPosition {
         return c ? c.currencyPositivePattern : SymbolPosition.Left;
     }
 
-    function _currencyNegativePattern(c: CultureInfo): SymbolNegativePattern {
+    function _currencyNegativePattern(c: NumberFormatInfo): SymbolNegativePattern {
         return c ? c.currencyNegativePattern : SymbolNegativePattern.ParenthesizedLeft;
     }
 
-    function _percentPositivePattern(c: CultureInfo): SymbolPosition {
+    function _percentPositivePattern(c: NumberFormatInfo): SymbolPosition {
         return c ? c.percentPositivePattern : SymbolPosition.RightWithSpace;
     }
 
-    function _percentNegativePattern(c: CultureInfo): SymbolNegativePattern {
+    function _percentNegativePattern(c: NumberFormatInfo): SymbolNegativePattern {
         return c ? c.percentNegativePattern : SymbolNegativePattern.SignNumberSpaceSymbol;
     }
     function _invariantType(): INumberTypeInfo {
@@ -366,24 +373,24 @@ module Shipwreck {
         };
     }
 
-    function _numberType(c: CultureInfo): INumberTypeInfo {
+    function _numberType(c: NumberFormatInfo): INumberTypeInfo {
         return c ? c.numberType() : _invariantType();
     }
-    function _currencyType(c: CultureInfo): INumberTypeInfo {
+    function _currencyType(c: NumberFormatInfo): INumberTypeInfo {
         return c ? c.currencyType() : _invariantType();
     }
 
-    function _percentType(c: CultureInfo): INumberTypeInfo {
+    function _percentType(c: NumberFormatInfo): INumberTypeInfo {
         return c ? c.percentType() : _invariantType();
     }
 
     // #endregion CultureInfo
 
-    function _appendNegative(c: CultureInfo, value: number, text: string) {
+    function _appendNegative(c: NumberFormatInfo, value: number, text: string) {
         return value >= 0 ? text : (_negativeSign(c) + text);
     }
 
-    function _format(c: CultureInfo, value: number, format: string): string {
+    function _format(c: NumberFormatInfo, value: number, format: string): string {
         if (!format) {
             return _format(c, value, "g");
         }
@@ -483,7 +490,7 @@ module Shipwreck {
         return _formatCustom(c, value, format);
     }
 
-    function _formatExponential(c: CultureInfo, value: number, length: number, capital: boolean): string {
+    function _formatExponential(c: NumberFormatInfo, value: number, length: number, capital: boolean): string {
         // get JavaScript exponential notation
         var r = Math.abs(value).toExponential(length >= 0 ? length : 6);
 
@@ -533,7 +540,7 @@ module Shipwreck {
     }
 
     // #region _formatCustom
-    function _formatCustom(c: CultureInfo, value: number, format: string): string {
+    function _formatCustom(c: NumberFormatInfo, value: number, format: string): string {
         var sections = _parseCustom(format);
         if (sections.length === 1) {
             return _appendNegative(c, value, _formatSection(c, Math.abs(value), sections[0]));
@@ -751,7 +758,7 @@ module Shipwreck {
         return r;
     }
 
-    function _formatSection(c: CultureInfo, value: number, sec: INumberFormatSection): string {
+    function _formatSection(c: NumberFormatInfo, value: number, sec: INumberFormatSection): string {
         var v = value * sec.coefficient, exp = 0;
 
         if (sec.exponential) {
@@ -1156,7 +1163,6 @@ module Shipwreck {
             var c = format.charAt(i);
             if (quote) {
                 if (escaped) {
-
                 }
             }
             if (escaped) {
