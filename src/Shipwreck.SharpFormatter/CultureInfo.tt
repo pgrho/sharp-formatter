@@ -1,6 +1,7 @@
 ﻿<#@ template language="C#" debug="True" #>
 <#@ assembly name="System.Core.dll" #>
 <#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Globalization" #>
 <#@ output extension="ts" #>
 module Shipwreck {
@@ -12,14 +13,20 @@ module Shipwreck {
 		private static _currentCulture: CultureInfo;
 		
 		public name: string;
-
+		
 		private _numberFormat: NumberFormatInfo;
+		private _dateTimeFormat: DateTimeFormatInfo;
 
 		private constructor(name: string) {
 			this.name = name;
 		}
+		
 		public get numberFormat(): NumberFormatInfo {
 			return this._numberFormat || (this._numberFormat = NumberFormatInfo.getInstance(this.name));
+		}
+
+		public get dateTimeFormat(): DateTimeFormatInfo {
+			return this._dateTimeFormat || (this._dateTimeFormat = DateTimeFormatInfo.getInstance(this.name));
 		}
 
 		public static get invariantCulture() : CultureInfo {
@@ -49,80 +56,61 @@ module Shipwreck {
 			return CultureInfo.invariantCulture;
 		}
 	}
-	
+<#
+
+var numberFields = new[]
+{
+	new { name = "positiveSign", type = "string" },
+	new { name = "negativeSign", type = "string" },
+	new { name = "positiveInifinitySymbol", type = "string" },
+	new { name = "negativeInifinitySymbol", type = "string" },
+	new { name = "NaNSymbol", type = "string" },
+	new { name = "numberDecimalSeparator", type = "string" },
+	new { name = "numberDecimalDigits", type = "number" },
+	new { name = "numberNegativePattern", type = "SymbolPosition" },
+	new { name = "numberGroupSeparator", type = "string" },
+	new { name = "numberGroupSizes", type = "number[]" },
+	new { name = "currencySymbol", type = "string" },
+	new { name = "currencyPositivePattern", type = "SymbolPosition" },
+	new { name = "currencyNegativePattern", type = "SymbolNegativePattern" },
+	new { name = "currencyDecimalDigits", type = "number" },
+	new { name = "currencyDecimalSeparator", type = "string" },
+	new { name = "currencyGroupSeparator", type = "string" },
+	new { name = "currencyGroupSizes", type = "number[]" },
+	new { name = "percentSymbol", type = "string" },
+	new { name = "percentPositivePattern", type = "SymbolPosition" },
+	new { name = "percentNegativePattern", type = "SymbolNegativePattern" },
+	new { name = "percentDecimalDigits", type = "number" },
+	new { name = "percentDecimalSeparator", type = "string" },
+	new { name = "percentGroupSeparator", type = "string" },
+	new { name = "percentGroupSizes", type = "number[]" }
+};
+
+#>
 	export class NumberFormatInfo {
 
 		private static _invariantInfo: NumberFormatInfo;
 		private static _cache: { [name: string]: NumberFormatInfo };
-		
-		public positiveSign: string;
-		public negativeSign: string;
-		
-		public positiveInifinitySymbol: string;
-		public negativeInifinitySymbol: string;
-		public NaNSymbol: string;
 
-		public numberDecimalSeparator: string;
-		public numberDecimalDigits: number;
-		public numberNegativePattern: SymbolPosition;
-		public numberGroupSeparator: string;
-		public numberGroupSizes: number[];
-		
-		public currencySymbol: string;
-		public currencyPositivePattern: SymbolPosition;
-		public currencyNegativePattern: SymbolNegativePattern;
-		public currencyDecimalDigits: number;
-		public currencyDecimalSeparator: string;
-		public currencyGroupSeparator: string;
-		public currencyGroupSizes: number[];
-		
-		public percentSymbol: string;
-		public percentPositivePattern: SymbolPosition;
-		public percentNegativePattern: SymbolNegativePattern;
-		public percentDecimalDigits: number;
-		public percentDecimalSeparator: string;
-		public percentGroupSeparator: string;
-		public percentGroupSizes: number[];
-		
-		private constructor(positiveSign: string, negativeSign: string
-		, positiveInifinitySymbol: string, negativeInifinitySymbol: string, NaNSymbol: string
-		, numberDecimalSeparator: string, numberDecimalDigits: number
-		, numberNegativePattern: SymbolPosition, numberGroupSeparator: string, numberGroupSizes: number[]
-		, currencySymbol: string, currencyPositivePattern: SymbolPosition, currencyNegativePattern: SymbolNegativePattern
-		, currencyDecimalDigits: number, currencyDecimalSeparator: string, currencyGroupSeparator: string, currencyGroupSizes: number[]
-		, percentSymbol: string, percentPositivePattern: SymbolPosition, percentNegativePattern: SymbolNegativePattern
-		, percentDecimalDigits: number, percentDecimalSeparator: string, percentGroupSeparator: string, percentGroupSizes: number[]) {
-
-			this.positiveSign = positiveSign;
-			this.negativeSign = negativeSign;
-
-			this.positiveInifinitySymbol = positiveInifinitySymbol;
-			this.negativeInifinitySymbol = negativeInifinitySymbol;
-			this.NaNSymbol = NaNSymbol;
-
-			this.numberDecimalSeparator = numberDecimalSeparator;
-			this.numberDecimalDigits = numberDecimalDigits;
-			this.numberNegativePattern = numberNegativePattern;
-			this.numberGroupSeparator = numberGroupSeparator;
-			this.numberGroupSizes = numberGroupSizes;
-
-			this.currencySymbol = currencySymbol;
-			this.currencyPositivePattern = currencyPositivePattern;
-			this.currencyNegativePattern = currencyNegativePattern;
-			this.currencyDecimalDigits = currencyDecimalDigits;
-			this.currencyDecimalSeparator = currencyDecimalSeparator;
-			this.currencyGroupSeparator = currencyGroupSeparator ;
-			this.currencyGroupSizes = currencyGroupSizes;
-
-			this.percentSymbol = percentSymbol;
-			this.percentPositivePattern = percentPositivePattern;
-			this.percentNegativePattern = percentNegativePattern;
-			this.percentDecimalDigits = percentDecimalDigits;
-			this.percentDecimalSeparator = percentDecimalSeparator;
-			this.percentGroupSeparator = percentGroupSeparator ;
-			this.percentGroupSizes = percentGroupSizes;
+<#
+foreach (var f in numberFields)
+{
+#>
+		public <#= f.name #>: <#= f.type #>;
+<#
+}
+#>
+		private constructor(<#= string.Join(", ", numberFields.Select(f => $"{f.name}: {f.type}")) #>) {
+<#
+foreach (var f in numberFields)
+{
+#>
+			this.<#= f.name #> = <#= f.name #>;
+<#
+}
+#>
 		}
-		
+
 		public numberType() : INumberTypeInfo {
 			return {
 				decimalSeparator: this.numberDecimalSeparator,
@@ -188,8 +176,107 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 			return NumberFormatInfo.invariantInfo;
 		}
 	}
+	
+<#
+	var dateTimeFields = new []
+	{
+		new { name = "fullDateTimePattern", type = "string" },
+		new { name = "sortableDateTimePattern", type = "string" },
+		new { name = "universalSortableDateTimePattern", type = "string" },
+		new { name = "rfc1123Pattern", type = "string" },
+		new { name = "yearMonthPattern", type = "string" },
+		new { name = "monthDayPattern", type = "string" },
+		new { name = "longDatePattern", type = "string" },
+		new { name = "shortDatePattern", type = "string" },
+		new { name = "longTimePattern", type = "string" },
+		new { name = "shortTimePattern", type = "string" },
+		new { name = "dateSeparator", type = "string" },
+		new { name = "timeSeparator", type = "string" },
+		new { name = "monthNames", type = "string[]" },
+		new { name = "monthGenitiveNames", type = "string[]" },
+		new { name = "abbreviatedMonthNames", type = "string[]" },
+		new { name = "abbreviatedMonthGenitiveNames", type = "string[]" },
+		new { name = "dayNames", type = "string[]" },
+		new { name = "abbreviatedDayNames", type = "string[]" },
+		new { name = "shortestDayNames", type = "string[]" },
+		new { name = "amDesignator", type = "string" },
+		new { name = "pmDesignator", type = "string" }
+	};
+#>
+	export class DateTimeFormatInfo {
+
+		private static _invariantInfo: DateTimeFormatInfo;
+		private static _cache: { [name: string]: DateTimeFormatInfo };
+		
+<#
+foreach (var f in dateTimeFields)
+{
+#>
+		public <#= f.name #>: <#= f.type #>;
+<#
+}
+#>
+		private constructor(<#= string.Join(", ", dateTimeFields.Select(f => $"{f.name}: {f.type}")) #>) {
+<#
+foreach (var f in dateTimeFields)
+{
+#>
+			this.<#= f.name #> = <#= f.name #>;
+<#
+}
+#>
+		}
+
+		public static get invariantInfo() : DateTimeFormatInfo {
+			return DateTimeFormatInfo._invariantInfo || (DateTimeFormatInfo._invariantInfo = <#= GetDateTimeFormatInfo(DateTimeFormatInfo.InvariantInfo) #>);
+		}
+
+		public static getInstance(name: string): DateTimeFormatInfo {
+			if (name) {
+				var k = name.substring(0, 2).toLowerCase();
+				var c : DateTimeFormatInfo;
+				if (DateTimeFormatInfo._cache) {
+					c = DateTimeFormatInfo._cache[k];
+					if (c) {
+						return c;
+					}
+				} else {
+					DateTimeFormatInfo._cache = {};
+				}
+				switch (k) {
+<#
+foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e => e.Name?.Length == 2).GroupBy(e => GetDateTimeFormatInfo(e.DateTimeFormat)))
+{
+	foreach (var c in g) {
+#>
+					case "<#= c.Name.ToLower() #>":
+<#
+	}
+#>
+						c = <#= g.Key #>;
+						break;
+<#
+}
+#>
+				}
+				if (c) {
+					DateTimeFormatInfo._cache[k] = c;
+					return c;
+				}
+			}
+			return DateTimeFormatInfo.invariantInfo;
+		}
+	}
 }
 <#+
+	public string GetArray(IEnumerable<int> values)
+	{
+		return "[" + string.Join(", ", values) + "]";
+	}
+	public string GetArray(IEnumerable<string> values)
+	{
+		return "[" + string.Join(", ", values.Select(s => $"\"{s}\"")) + "]";
+	}
 	public string GetNumberFormatInfo(NumberFormatInfo n) {
 		string nnp;
 		switch (n.NumberNegativePattern) {
@@ -337,10 +424,33 @@ foreach(var g in CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(e =
 		}
 		return $"new NumberFormatInfo(\"{n.PositiveSign}\", \"{n.NegativeSign}\""
 				+ $", \"{n.PositiveInfinitySymbol}\", \"{n.NegativeInfinitySymbol}\", \"{n.NaNSymbol}\""
-				+ $", \"{n.NumberDecimalSeparator}\", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", [{string.Join(", ", n.NumberGroupSizes)}]"
+				+ $", \"{n.NumberDecimalSeparator}\", {n.NumberDecimalDigits}, SymbolPosition.{nnp}, \"{n.NumberGroupSeparator}\", {GetArray(n.NumberGroupSizes)}"
 				+ $", \"{n.CurrencySymbol}\", SymbolPosition.{cpp}, SymbolNegativePattern.{cnp}, {n.CurrencyDecimalDigits}"
-				+ $", \"{n.CurrencyDecimalSeparator}\", \"{n.CurrencyGroupSeparator}\", [{string.Join(",", n.CurrencyGroupSizes)}]"
+				+ $", \"{n.CurrencyDecimalSeparator}\", \"{n.CurrencyGroupSeparator}\", {GetArray(n.CurrencyGroupSizes)}"
 				+ $", \"{n.PercentSymbol}\", SymbolPosition.{ppp}, SymbolNegativePattern.{pnp}, {n.PercentDecimalDigits}"
-				+ $", \"{n.PercentDecimalSeparator}\", \"{n.PercentGroupSeparator}\", [{string.Join(",", n.PercentGroupSizes)}])";
+				+ $", \"{n.PercentDecimalSeparator}\", \"{n.PercentGroupSeparator}\", {GetArray(n.PercentGroupSizes)})";
+	}
+	public string GetDateTimeFormatInfo(DateTimeFormatInfo f) {
+		return $"new DateTimeFormatInfo(\"{f.FullDateTimePattern}\","
++ $"\"{f.SortableDateTimePattern}\","
++ $"\"{f.UniversalSortableDateTimePattern}\","
++ $"\"{f.RFC1123Pattern}\","
++ $"\"{f.YearMonthPattern}\","
++ $"\"{f.MonthDayPattern}\","
++ $"\"{f.LongDatePattern}\","
++ $"\"{f.ShortDatePattern}\","
++ $"\"{f.LongTimePattern}\","
++ $"\"{f.ShortTimePattern}\","
++ $"\"{f.DateSeparator}\","
++ $"\"{f.TimeSeparator}\","
++ $"{GetArray(f.MonthNames)},"
++ $"{GetArray(f.MonthGenitiveNames)},"
++ $"{GetArray(f.AbbreviatedMonthNames)},"
++ $"{GetArray(f.AbbreviatedMonthGenitiveNames)},"
++ $"{GetArray(f.DayNames)},"
++ $"{GetArray(f.AbbreviatedDayNames)},"
++ $"{GetArray(f.ShortestDayNames)},"
++ $"\"{f.AMDesignator}\","
++ $"\"{f.PMDesignator}\")";
 	}
 #>
