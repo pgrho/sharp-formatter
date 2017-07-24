@@ -1,4 +1,5 @@
-﻿// #define LOCALES
+﻿#define LOCALES
+// #define NON_GREGORIAN
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -9,24 +10,34 @@ namespace Shipwreck.SharpFormatter.Tests
     [TestClass]
     public abstract class FormatDateTest
     {
-        private void Test(DateTime value, string format)
+        private void Test(DateTime value, string format, string customFormat = null)
         {
             var d = DriverHelper.GetDriver(HtmlName);
             var c = Culture;
+
             var exp = value.ToString(format, c);
+            if (customFormat != null && exp != value.ToString(customFormat, c))
+            {
+                throw new InvalidOperationException($"Supplied custom format '{nameof(customFormat)}' does not produce same result as standard format 'd'");
+            }
             Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\" in {3}", value, format, exp, Culture.DisplayName);
 
             var s = d.ExecuteScript(
                 $"var d = new Date({value.Year}, {value.Month - 1}, {value.Day}, {value.Hour}, {value.Minute}, {value.Second}, {value.Millisecond});"
                 + $"return Shipwreck.SharpFormatter.formatDate(d, '{format}', {CultureScript});"
                 );
-            Assert.AreEqual(exp, s);
+            Assert.AreEqual(exp, s, $"{value:O} formatted by \"{format}\"{(c == null ? null : $" in {c.Name} ({c.DisplayName})")} is expected to be \"{exp}\", but SharpFormatter returns \"{s}\"");
         }
-        private void Test(DateTimeOffset value, string format)
+
+        private void Test(DateTimeOffset value, string format, string customFormat = null)
         {
             var d = DriverHelper.GetDriver(HtmlName);
             var c = Culture;
             var exp = value.ToString(format, c);
+            if (customFormat != null && exp != value.ToString(customFormat, c))
+            {
+                throw new InvalidOperationException($"Supplied custom format '{nameof(customFormat)}' does not produce same result as standard format 'd'");
+            }
             Console.WriteLine("Testing {0} formatted by \"{1}\" expecting \"{2}\" in {3}", value, format, exp, Culture.DisplayName);
 
             var s = d.ExecuteScript(
@@ -34,7 +45,7 @@ namespace Shipwreck.SharpFormatter.Tests
                 + $" d.getTimezoneOffset = function (){{ return {value.Offset.TotalMinutes} }};"
                 + $"return Shipwreck.SharpFormatter.formatDate(d, '{format}', {CultureScript});"
                 );
-            Assert.AreEqual(exp, s);
+            Assert.AreEqual(exp, s, $"{value:O} formatted by \"{format}\"{(c == null ? null : $" in {c.Name} ({c.DisplayName})")} is expected to be \"{exp}\", but SharpFormatter returns \"{s}\"");
         }
 
         public virtual string HtmlName => "test.html";
@@ -49,11 +60,11 @@ namespace Shipwreck.SharpFormatter.Tests
 
         [TestMethod]
         public void FormatDate_Standard_d()
-            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "d");
+            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "d", Culture?.DateTimeFormat.ShortDatePattern);
 
         [TestMethod]
         public void FormatDate_Standard_D()
-            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "D");
+            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "D", Culture?.DateTimeFormat.LongDatePattern);
 
         [TestMethod]
         public void FormatDate_Standard_f()
@@ -117,11 +128,11 @@ namespace Shipwreck.SharpFormatter.Tests
 
         [TestMethod]
         public void FormatDate_Standard_y()
-            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "y");
+            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "y", Culture?.DateTimeFormat.YearMonthPattern);
 
         [TestMethod]
         public void FormatDate_Standard_Y()
-            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "Y");
+            => Test(new DateTimeOffset(2017, 1, 2, 3, 4, 5, 678, TimeSpan.FromMinutes(390)), "Y", Culture?.DateTimeFormat.YearMonthPattern);
 
         #endregion 標準
     }
@@ -203,12 +214,6 @@ namespace Shipwreck.SharpFormatter.Tests
     public sealed class CultureFormatDateTest_Am : FormatDateTest
     {
         public override string CultureName => "am";
-    }
-
-    [TestClass]
-    public sealed class CultureFormatDateTest_Ar : FormatDateTest
-    {
-        public override string CultureName => "ar";
     }
 
     [TestClass]
@@ -455,12 +460,6 @@ namespace Shipwreck.SharpFormatter.Tests
     public sealed class CultureFormatDateTest_Eu : FormatDateTest
     {
         public override string CultureName => "eu";
-    }
-
-    [TestClass]
-    public sealed class CultureFormatDateTest_Fa : FormatDateTest
-    {
-        public override string CultureName => "fa";
     }
 
     [TestClass]
@@ -836,12 +835,6 @@ namespace Shipwreck.SharpFormatter.Tests
     }
 
     [TestClass]
-    public sealed class CultureFormatDateTest_Ps : FormatDateTest
-    {
-        public override string CultureName => "ps";
-    }
-
-    [TestClass]
     public sealed class CultureFormatDateTest_Pt : FormatDateTest
     {
         public override string CultureName => "pt";
@@ -938,12 +931,6 @@ namespace Shipwreck.SharpFormatter.Tests
     }
 
     [TestClass]
-    public sealed class CultureFormatDateTest_Th : FormatDateTest
-    {
-        public override string CultureName => "th";
-    }
-
-    [TestClass]
     public sealed class CultureFormatDateTest_Ti : FormatDateTest
     {
         public override string CultureName => "ti";
@@ -1032,6 +1019,34 @@ namespace Shipwreck.SharpFormatter.Tests
     {
         public override string CultureName => "zu";
     }
+
+#if NON_GREGORIAN
+
+    [TestClass]
+    public sealed class CultureFormatDateTest_Ar : FormatDateTest
+    {
+        public override string CultureName => "ar";
+    }
+
+    [TestClass]
+    public sealed class CultureFormatDateTest_Fa : FormatDateTest
+    {
+        public override string CultureName => "fa";
+    }
+
+    [TestClass]
+    public sealed class CultureFormatDateTest_Ps : FormatDateTest
+    {
+        public override string CultureName => "ps";
+    }
+
+    [TestClass]
+    public sealed class CultureFormatDateTest_Th : FormatDateTest
+    {
+        public override string CultureName => "th";
+    }
+
+#endif
 
 #endif
 
